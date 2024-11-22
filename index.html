@@ -63,7 +63,7 @@
                 transform: translateX(-50%);
                 width: 90%;
                 max-width:600px;
-                background-color: #205581;
+                background-color: rgba(20,55,81,.8);
                 color: rgb(255,255,255,.9);
                 padding: 10px 20px;
                 border-radius: 25px;
@@ -98,14 +98,29 @@
                 font-size: 2em;
                 color: rgb(255,255,255,.9);
             }
-            #back-to-accounts {
+            /*#back-to-accounts {
                 margin-left: auto;
                 display: block;
-            }
-            .service-screen-buttons {
+            }*/
+            .service-screen-buttons, .account-screen-buttons {
                 display: flex;
                 justify-content: flex-end;
                 gap: 10px;
+            }
+            button {
+                background: linear-gradient(to right, #205581, #2E6FA5); /* Gradient from left to right */
+                border: 1px solid #2E6FA5; /* 1px border with specified color */
+                border-radius: 3px; /* Rounded corners with 3px radius */
+                color: #fff; /* Text color */
+                padding: 6px 20px; /* Optional: add padding for better appearance */
+                cursor: pointer; /* Change cursor to pointer on hover */
+                font-size: 14px; /* Optional: set font size */
+                transition: background 0.3s ease; /* Optional: smooth transition on hover */
+                gap:15px;
+            }
+
+            button:hover {
+                background: linear-gradient(to right, rgba(20,55,81,.9), rgba(2E,6F,A5,.9));
             }
         </style>
         <script>
@@ -212,7 +227,7 @@
 
                 const activateAccount = (account) => {
                     activeAccount = account;
-                    activeAccountName.textContent = "Account: " +account.name;
+                    activeAccountName.textContent = "Services for Account: " +account.name;
                     accountScreen.style.display = 'none';
                     serviceScreen.style.display = 'block';
                     loadServices();
@@ -320,7 +335,7 @@
                         setTimeout(() => {
                             notificationPill.style.display = 'none';
                         }, 300); // Match this timeout with the CSS transition duration
-                    }, 3000); // Display for 3 seconds
+                    }, 2000); 
                 }
 
                 function generateHashedPassword(uri, data){
@@ -387,9 +402,12 @@
             </div>
             <div id="app">
                 <div id="account-screen" class="screen">
-                    <h1>Accounts</h1>
+                    <h1>Accounts<h1>
                     <ul id="account-list"></ul>
-                    <button id="add-account-btn">Add Account</button> | <button id="edit-accounts-btn">Edit Accounts</button>
+                    <div id="account-screen-buttons" class="account-screen-buttons">
+                        <button id="add-account-btn">Add Account</button>
+                        <button id="edit-accounts-btn">Edit Accounts</button>
+                    </div>
                 </div>
                 <div id="service-screen" class="screen" style="display: none;">
                     <h1 id="active-account-name"></h1>
