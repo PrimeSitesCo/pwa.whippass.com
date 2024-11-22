@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="manifest" href="manifest.json" />
+
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+
+        <title>WhipPass App</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Goldman:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" media="screen" href="assets/css/style.css" />
+        <script src="assets/js/clipboard.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.css">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-migrate-3.4.1.min.js" id="jquery-migrate-js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+        
+        <script type="text/javascript" src="scripts/pwd-core.js" defer></script>
+        <scrip type="text/javascript"t src="scripts/cam-pwd-core.js" defer></script>
+        <script type="text/javascript" src="scripts/whippass-core.js" defer></script>
+        <script type="text/javascript" src="scripts/whippass-pw-show.js" defer></script>
+
+        <style>
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            li {
+                cursor: pointer;
+                border-bottom: 1px solid #333;
+                padding: 6px 2px;
+            }
+            body {
+                background-color: #111;
+                color: white; /* Sets the text color to white */
+            }
+
+            a {
+                color: white; /* Sets the link color to white */
+                text-decoration: none; /* Optional: removes underline from links */
+            }
+
+            a:hover {
+                text-decoration: underline; /* Optional: adds underline on hover for better visibility */
+            }
+            .notification-pill {
+                position: fixed;
+                bottom: 40px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width:600px;
+                background-color: #333;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                font-size: 14px;
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                text-align: center;
+            }
+            ul {
+                border: 1px solid #666;
+                border-radius: 10px;
+                padding: 6px;
+                margin: 8px 0px;
+                list-style-type: none; /* Optional: remove default list styling */
+            }
+
+            .header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .header img {
+                width: 10%;
+                max-width: 100px; /* Optional: limit the maximum width */
+            }
+
+            .header h1 {
+                margin-left: 20px;
+                font-size: 2em;
+                color: white;
+            }
+        </style>
+        <script>
+            var SPH_kPasswordPrefix="@@";
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    // Listen for updates to the service worker
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // New update available
+                                    showUpdateButton();
+                                }
+                            }
+                        };
+                    };
+                }).catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+            }
+
+            function showUpdateButton() {
+                const updateButton = document.getElementById('update-app');
+                updateButton.style.display = 'block';
+                updateButton.addEventListener('click', () => {
+                    // Append a query parameter to force a fresh load
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('update', Date.now());
+                    window.location.href = currentUrl.toString();
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const accountScreen = document.getElementById('account-screen');
+                const serviceScreen = document.getElementById('service-screen');
+                const accountList = document.getElementById('account-list');
+                const serviceList = document.getElementById('service-list');
+                const activeAccountName = document.getElementById('active-account-name');
+                let activeAccount = null;
+                let isEditingAccounts = false;
+                let isEditingServices = false;
+
+                const toggleEditAccounts = () => {
+                    isEditingAccounts = !isEditingAccounts;
+                    document.getElementById('edit-accounts-btn').textContent = isEditingAccounts ? 'Done' : 'Edit';
+                    loadAccounts();
+                };
+
+                const toggleEditServices = () => {
+                    isEditingServices = !isEditingServices;
+                    document.getElementById('edit-services-btn').textContent = isEditingServices ? 'Done' : 'Edit';
+                    loadServices();
+                };
+
+                const loadAccounts = () => {
+                    const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+                    accountList.innerHTML = '';
+                    accounts.forEach(account => {
+                        const li = document.createElement('li');
+                        li.textContent = account.name;
+
+                        if (isEditingAccounts) {
+                            const editLink = document.createElement('span');
+                            editLink.textContent = 'edit';
+                            editLink.style.color = 'blue';
+                            editLink.style.cursor = 'pointer';
+                            editLink.style.marginLeft = '10px';
+
+                            const deleteLink = document.createElement('span');
+                            deleteLink.textContent = 'delete';
+                            deleteLink.style.color = 'red';
+                            deleteLink.style.cursor = 'pointer';
+                            deleteLink.style.marginLeft = '10px';
+
+                            editLink.addEventListener('click', (event) => {
+                                event.stopPropagation();
+                                editAccount(account);
+                            });
+
+                            deleteLink.addEventListener('click', (event) => {
+                                event.stopPropagation();
+                                if (confirm('Are you sure you want to delete this account?')) {
+                                    removeAccount(account.name);
+                                }
+                            });
+
+                            li.appendChild(editLink);
+                            li.appendChild(deleteLink);
+                        }
+
+                        li.addEventListener('click', () => activateAccount(account));
+                        accountList.appendChild(li);
+                    });
+                };
+
+                const removeAccount = (accountName) => {
+                    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+                    accounts = accounts.filter(account => account.name !== accountName);
+                    localStorage.setItem('accounts', JSON.stringify(accounts));
+                    loadAccounts();
+                };
+
+                const activateAccount = (account) => {
+                    activeAccount = account;
+                    activeAccountName.textContent = "Account: " +account.name;
+                    accountScreen.style.display = 'none';
+                    serviceScreen.style.display = 'block';
+                    loadServices();
+                };
+
+                const editAccount = (account) => {
+                    const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+                    const index = accounts.findIndex(acc => acc.name === account.name);
+
+                    if (index !== -1) {
+                        const newName = prompt('Edit account name:', account.name);
+                        if (newName !== null) {
+                            const newWhip = prompt('Edit Whip (password):', account.whip);
+                            if (newWhip !== null) {
+                                accounts[index].name = newName;
+                                accounts[index].whip = newWhip;
+                                localStorage.setItem('accounts', JSON.stringify(accounts));
+                                loadAccounts();
+                            }
+                        }
+                    }
+                };
+
+                const loadServices = () => {
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
+                    serviceList.innerHTML = '';
+                    services.forEach(service => {
+                        const li = document.createElement('li');
+                        li.textContent = service.url;
+
+                        if (isEditingServices) {
+                            const editLink = document.createElement('span');
+                            editLink.textContent = 'edit';
+                            editLink.style.color = 'blue';
+                            editLink.style.cursor = 'pointer';
+                            editLink.style.marginLeft = '10px';
+
+                            const deleteLink = document.createElement('span');
+                            deleteLink.textContent = 'delete';
+                            deleteLink.style.color = 'red';
+                            deleteLink.style.cursor = 'pointer';
+                            deleteLink.style.marginLeft = '10px';
+
+                            editLink.addEventListener('click', (event) => {
+                                event.stopPropagation();
+                                editService(service);
+                            });
+
+                            deleteLink.addEventListener('click', (event) => {
+                                event.stopPropagation();
+                                if (confirm('Are you sure you want to delete this service?')) {
+                                    removeService(service.url);
+                                }
+                            });
+
+                            li.appendChild(editLink);
+                            li.appendChild(deleteLink);
+                        }
+
+                        li.addEventListener('click', () => useService(service));
+                        serviceList.appendChild(li);
+                    });
+                };
+
+                const editService = (service) => {
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
+                    const index = services.findIndex(srv => srv.url === service.url);
+
+                    if (index !== -1) {
+                        const newUrl = prompt('Edit Service URL:', service.url);
+                        if (newUrl !== null) {
+                            services[index].url = newUrl;
+                            localStorage.setItem('services', JSON.stringify(services));
+                            loadServices();
+                        }
+                    }
+                };
+
+                const removeService = (serviceUrl) => {
+                    let services = JSON.parse(localStorage.getItem('services')) || [];
+                    services = services.filter(service => service.url !== serviceUrl);
+                    localStorage.setItem('services', JSON.stringify(services));
+                    loadServices();
+                };
+
+                const useService = (service) => {
+                    const domain = service.url;
+                    const sitePassword = activeAccount.whip;
+                    const hashedPassword = generateHashedPassword(domain, sitePassword);
+                    navigator.clipboard.writeText(hashedPassword).then(() => {
+                        showNotificationPill(hashedPassword);
+                    });
+                };
+
+                function showNotificationPill(hashedPassword) {
+                    const notificationPill = document.getElementById('notification-pill');
+                    const hashedPasswordDisplay = document.getElementById('hashed-password-display');
+                    hashedPasswordDisplay.textContent = hashedPassword;
+
+                    notificationPill.style.display = 'block';
+                    notificationPill.style.opacity = '1';
+
+                    setTimeout(() => {
+                        notificationPill.style.opacity = '0';
+                        setTimeout(() => {
+                            notificationPill.style.display = 'none';
+                        }, 300); // Match this timeout with the CSS transition duration
+                    }, 3000); // Display for 3 seconds
+                }
+
+                function generateHashedPassword(uri, data){
+                    //var uri=document.hashform.domain.value;
+                    var domain=(new SPH_DomainExtractor()).extractDomain(uri);
+                    var size=SPH_kPasswordPrefix.length;
+                    //var data=document.hashform.sitePassword.value;
+                    if(data.substring(0,size)==SPH_kPasswordPrefix)
+                    data=data.substring(size);
+                    var result=new String(new SPH_HashedPassword(data,domain));
+                    return result;
+                }
+
+                /*const generateHashedPassword = (domain, sitePassword) => {
+                    // Implement your password hashing logic here
+                    return `${domain}-${sitePassword}`; // Placeholder
+                };*/
+
+                document.getElementById('add-account-btn').addEventListener('click', () => {
+                    const name = prompt('Enter account name:');
+                    const whip = prompt('Enter Whip (password):');
+                    if (name && whip) {
+                        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+                        accounts.push({ name, whip });
+                        localStorage.setItem('accounts', JSON.stringify(accounts));
+                        loadAccounts();
+                    }
+                });
+
+                document.getElementById('add-service-btn').addEventListener('click', () => {
+                    const url = prompt('Enter Service URL:');
+                    if (url) {
+                        const domainMatch = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i);
+                        const apexDomain = domainMatch ? domainMatch[1] : null;
+
+                        if (apexDomain) {
+                            const services = JSON.parse(localStorage.getItem('services')) || [];
+                            services.push({ url: apexDomain });
+                            localStorage.setItem('services', JSON.stringify(services));
+                            loadServices();
+                        } else {
+                            alert('Invalid URL. Please enter a valid URL.');
+                        }
+                    }
+                });
+
+                document.getElementById('back-to-accounts').addEventListener('click', () => {
+                    serviceScreen.style.display = 'none';
+                    accountScreen.style.display = 'block';
+                });
+
+                document.getElementById('edit-accounts-btn').addEventListener('click', toggleEditAccounts);
+                document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
+
+                loadAccounts();
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo">
+                <h1>WhipPass</h1>
+            </div>
+            <div id="app">
+                <div id="account-screen" class="screen">
+                    <h1>Accounts</h1>
+                    <ul id="account-list"></ul>
+                    <button id="add-account-btn">Add Account</button> | <button id="edit-accounts-btn">Edit</button>
+                </div>
+                <div id="service-screen" class="screen" style="display: none;">
+                    <h1 id="active-account-name"></h1>
+                    <ul id="service-list"></ul>
+                    <button id="add-service-btn">Add Service</button> | <button id="edit-services-btn">Edit</button> | <button id="back-to-accounts">Back</button>
+                </div>
+                <div id="update-app" style="display: none; margin-top:20px;">
+                    <button>Update App</button>
+                </div>
+            </div>
+            <div id="notification-pill" class="notification-pill" style="display: none;">
+                <span id="hashed-password-display"></span><br>
+                <span>Copied to clipboard</span>
+            </div>
+
+
+            <!-- <h1>Password Whipping</h1>
+            <form class="whippass100-form validate-form" name="hashform" id="hashform" method="POST" onsubmit="setTimeout('GenerateToTextField()', 0); return false;">
+
+                <div class="my-4">
+                    <label for="domain">Website Address (URI)</label>
+                    <input id="domain" type="text" class="form-input text-base md:text-sm" name="domain" autocapitalize="off" placeholder="http://www.example.com/" title="Start typing or paste the URI of the website you need to log into. E.g. google.com, facebook.com. Note: case sensitive." value="google.com"/>
+                </div>
+
+                <div class="my-4">
+                    <label for="sitePassword">Master Password (Whip)</label>
+                    <input id="sitePassword" type="password" class="form-input text-base md:text-sm" name="sitePassword" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Enter your Whip" title="Type your master password, which stays consistent for all your services. NB: Do not reveal this to anyone." />
+                </div>
+
+                <button name="submitButton" class="btn btn-primary !mt-6 my-4">Whip it!</button>
+
+                <div class="my-4">
+                    <label for="hashedPassword">Whipped Password</label>  
+                    <input type="text" class="form-input text-base md:text-sm dark:text-white" name="hashedPassword" x-model="hashedPassword" id="hashedPassword" placeholder="Click 'Whip it!' above"  />
+                </div>
+
+                <button name="button" class="btn btn-primary !mt-6 my-4" data-clipboard-target="#hashedPassword">Copy Password</button>
+
+                <script>
+                    new ClipboardJS('.btn');
+                    document.addEventListener("alpine:init", () => {
+                        Alpine.data("form", () => ({
+                            hashedPassword: '',
+                        }));
+                    });
+                </script>
+
+            </form>-->
+        </div>
+    </body>
+    </html>
