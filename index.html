@@ -37,22 +37,62 @@
             }
             li {
                 cursor: pointer;
-                border-bottom: 1px solid rgba(20,55,81,.5);
+                border-bottom: 1px solid rgba(20, 55, 81,.5);
                 padding: 6px 2px;
+            }
+            li:hover {
+                background-color: rgba(20, 55, 81,.08);
             }
             li:last-child {
                 border-bottom: none; 
             }
             body {
-                background-color: #111;
+                background-color: #000;
+                width:100vw;
+                height:100vh;
                 color: rgb(255,255,255,.9); /* Sets the text color to white */
             }
-
-            a {
-                color: rgb(255,255,255,.9); /* Sets the link color to white */
-                text-decoration: none; /* Optional: removes underline from links */
+            .background-container {
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden; /* Ensures content doesn't overflow the container */
             }
 
+            .thing-one, .thing-two, .thing-three {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .thing-one {
+                background: radial-gradient(40% 60% at 35% 65%, rgba(20,55,81,.6) 0%, rgba(20,55,81,0) 100%);
+                z-index: 1;
+            }
+
+            .thing-two {
+                background: radial-gradient(60% 40% at 65% 35%, rgba(46,111,165,.3) 0%, rgba(46,111,165,0) 100%);
+                z-index: 2;
+            }
+
+            .thing-three {
+                /*background: radial-gradient(60% 40% at 65% 35%, rgba(46,111,165,.3) 0%, rgba(46,111,165,0) 100%);*/
+                z-index: 3;
+            }
+
+            .content {
+                position: relative;
+                z-index: 4; /* Ensures content is above the backgrounds */
+                /* Add any additional styling for your content here */
+            }
+            a {
+                color: rgb(255,255,255,.9);
+                text-decoration: none;
+            }a:hover {
+                color: rgb(255,255,255,.7);
+                text-decoration: underline;
+            }
             a:hover {
                 text-decoration: underline; /* Optional: adds underline on hover for better visibility */
             }
@@ -80,19 +120,17 @@
                 padding: 6px;
                 margin: 8px 0px;
                 list-style-type: none; /* Optional: remove default list styling */
+                background-color: rgb(32, 85, 129,0.1);
             }
-
             .header {
                 display: flex;
                 align-items: center;
                 margin-bottom: 20px;
             }
-
             .header img {
                 width: 10%;
                 max-width: 100px; /* Optional: limit the maximum width */
             }
-
             .header h1 {
                 margin-left: 20px;
                 font-size: 2em;
@@ -118,9 +156,8 @@
                 transition: background 0.3s ease; /* Optional: smooth transition on hover */
                 gap:15px;
             }
-
             button:hover {
-                background: linear-gradient(to right, rgba(20,55,81,.9), rgba(2E,6F,A5,.9));
+                background: linear-gradient(to right, rgba(32, 85, 129, 0.9), rgba(46, 111, 165, 0.9));
             }
         </style>
         <script>
@@ -395,71 +432,78 @@
         </script>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo">
-                <h1>WhipPass App</h1>
-            </div>
-            <div id="app">
-                <div id="account-screen" class="screen">
-                    <h1>Accounts<h1>
-                    <ul id="account-list"></ul>
-                    <div id="account-screen-buttons" class="account-screen-buttons">
-                        <button id="add-account-btn">Add Account</button>
-                        <button id="edit-accounts-btn">Edit Accounts</button>
+        <div class="background-container">
+            <div class="thing-one"></div>
+            <div class="thing-two"></div>
+            <div class="thing-three"></div>
+            <div class="content">
+                <div class="container">
+                    <div class="header">
+                        <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo">
+                        <h1>WhipPass App</h1>
                     </div>
-                </div>
-                <div id="service-screen" class="screen" style="display: none;">
-                    <h1 id="active-account-name"></h1>
-                    <ul id="service-list"></ul>
-                    <div id="service-screen-buttons" class="service-screen-buttons">
-                        <button id="add-service-btn">Add Service</button>
-                        <button id="edit-services-btn">Edit Services</button>
-                        <button id="back-to-accounts">Back</button>
+                    <div id="app">
+                        <div id="account-screen" class="screen">
+                            <h1>Accounts<h1>
+                            <ul id="account-list"></ul>
+                            <div id="account-screen-buttons" class="account-screen-buttons">
+                                <button id="add-account-btn">Add Account</button>
+                                <button id="edit-accounts-btn">Edit Accounts</button>
+                            </div>
+                        </div>
+                        <div id="service-screen" class="screen" style="display: none;">
+                            <h1 id="active-account-name"></h1>
+                            <ul id="service-list"></ul>
+                            <div id="service-screen-buttons" class="service-screen-buttons">
+                                <button id="add-service-btn">Add Service</button>
+                                <button id="edit-services-btn">Edit Services</button>
+                                <button id="back-to-accounts">Back</button>
+                            </div>
+                        </div>
+                        <div id="update-app" style="display: none; margin-top:20px;">
+                            <button>Update App</button>
+                        </div>
                     </div>
-                </div>
-                <div id="update-app" style="display: none; margin-top:20px;">
-                    <button>Update App</button>
+                    <div id="notification-pill" class="notification-pill" style="display: none;">
+                        <span id="hashed-password-display"></span><br>
+                        <span>Copied to clipboard</span>
+                    </div>
+
+
+                    <!-- <h1>Password Whipping</h1>
+                    <form class="whippass100-form validate-form" name="hashform" id="hashform" method="POST" onsubmit="setTimeout('GenerateToTextField()', 0); return false;">
+
+                        <div class="my-4">
+                            <label for="domain">Website Address (URI)</label>
+                            <input id="domain" type="text" class="form-input text-base md:text-sm" name="domain" autocapitalize="off" placeholder="http://www.example.com/" title="Start typing or paste the URI of the website you need to log into. E.g. google.com, facebook.com. Note: case sensitive." value="google.com"/>
+                        </div>
+
+                        <div class="my-4">
+                            <label for="sitePassword">Master Password (Whip)</label>
+                            <input id="sitePassword" type="password" class="form-input text-base md:text-sm" name="sitePassword" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Enter your Whip" title="Type your master password, which stays consistent for all your services. NB: Do not reveal this to anyone." />
+                        </div>
+
+                        <button name="submitButton" class="btn btn-primary !mt-6 my-4">Whip it!</button>
+
+                        <div class="my-4">
+                            <label for="hashedPassword">Whipped Password</label>  
+                            <input type="text" class="form-input text-base md:text-sm dark:text-white" name="hashedPassword" x-model="hashedPassword" id="hashedPassword" placeholder="Click 'Whip it!' above"  />
+                        </div>
+
+                        <button name="button" class="btn btn-primary !mt-6 my-4" data-clipboard-target="#hashedPassword">Copy Password</button>
+
+                        <script>
+                            new ClipboardJS('.btn');
+                            document.addEventListener("alpine:init", () => {
+                                Alpine.data("form", () => ({
+                                    hashedPassword: '',
+                                }));
+                            });
+                        </script>
+
+                    </form>-->
                 </div>
             </div>
-            <div id="notification-pill" class="notification-pill" style="display: none;">
-                <span id="hashed-password-display"></span><br>
-                <span>Copied to clipboard</span>
-            </div>
-
-
-            <!-- <h1>Password Whipping</h1>
-            <form class="whippass100-form validate-form" name="hashform" id="hashform" method="POST" onsubmit="setTimeout('GenerateToTextField()', 0); return false;">
-
-                <div class="my-4">
-                    <label for="domain">Website Address (URI)</label>
-                    <input id="domain" type="text" class="form-input text-base md:text-sm" name="domain" autocapitalize="off" placeholder="http://www.example.com/" title="Start typing or paste the URI of the website you need to log into. E.g. google.com, facebook.com. Note: case sensitive." value="google.com"/>
-                </div>
-
-                <div class="my-4">
-                    <label for="sitePassword">Master Password (Whip)</label>
-                    <input id="sitePassword" type="password" class="form-input text-base md:text-sm" name="sitePassword" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Enter your Whip" title="Type your master password, which stays consistent for all your services. NB: Do not reveal this to anyone." />
-                </div>
-
-                <button name="submitButton" class="btn btn-primary !mt-6 my-4">Whip it!</button>
-
-                <div class="my-4">
-                    <label for="hashedPassword">Whipped Password</label>  
-                    <input type="text" class="form-input text-base md:text-sm dark:text-white" name="hashedPassword" x-model="hashedPassword" id="hashedPassword" placeholder="Click 'Whip it!' above"  />
-                </div>
-
-                <button name="button" class="btn btn-primary !mt-6 my-4" data-clipboard-target="#hashedPassword">Copy Password</button>
-
-                <script>
-                    new ClipboardJS('.btn');
-                    document.addEventListener("alpine:init", () => {
-                        Alpine.data("form", () => ({
-                            hashedPassword: '',
-                        }));
-                    });
-                </script>
-
-            </form>-->
         </div>
     </body>
-    </html>
+</html>
