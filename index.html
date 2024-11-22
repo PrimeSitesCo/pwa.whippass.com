@@ -40,6 +40,9 @@
                 border-bottom: 1px solid rgba(20,55,81,.5);
                 padding: 6px 2px;
             }
+            li:last-child {
+                border-bottom: none; 
+            }
             body {
                 background-color: #111;
                 color: rgb(255,255,255,.9); /* Sets the text color to white */
@@ -72,7 +75,7 @@
                 text-align: center;
             }
             ul {
-                border: 3px solid rgba(20,55,81,.7);
+                border: 2px solid rgba(20,55,81,.9);
                 border-radius: 10px;
                 padding: 6px;
                 margin: 8px 0px;
@@ -94,6 +97,15 @@
                 margin-left: 20px;
                 font-size: 2em;
                 color: rgb(255,255,255,.9);
+            }
+            #back-to-accounts {
+                margin-left: auto;
+                display: block;
+            }
+            .service-screen-buttons {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
             }
         </style>
         <script>
@@ -382,7 +394,11 @@
                 <div id="service-screen" class="screen" style="display: none;">
                     <h1 id="active-account-name"></h1>
                     <ul id="service-list"></ul>
-                    <button id="add-service-btn">Add Service</button> | <button id="edit-services-btn">Edit Services</button> | <button id="back-to-accounts">Back</button>
+                    <div id="service-screen-buttons" class="service-screen-buttons">
+                        <button id="add-service-btn">Add Service</button>
+                        <button id="edit-services-btn">Edit Services</button>
+                        <button id="back-to-accounts">Back</button>
+                    </div>
                 </div>
                 <div id="update-app" style="display: none; margin-top:20px;">
                     <button>Update App</button>
