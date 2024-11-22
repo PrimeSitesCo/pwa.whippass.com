@@ -159,9 +159,16 @@
             button:hover {
                 background: linear-gradient(to right, rgba(32, 85, 129, 0.9), rgba(46, 111, 165, 0.9));
             }
+            button:disabled {
+                background: linear-gradient(to right, #7a7a7a, #b0b0b0); /* Grayscale gradient */
+                cursor: not-allowed;
+                opacity: 0.6; /* Optional: make disabled buttons appear less prominent */
+            }
         </style>
         <script>
             var SPH_kPasswordPrefix="@@";
+            let notificationTimeout; // Declare a variable to store the timeout ID
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js').then(registration => {
                     // Listen for updates to the service worker
@@ -206,12 +213,19 @@
                     isEditingAccounts = !isEditingAccounts;
                     document.getElementById('edit-accounts-btn').textContent = isEditingAccounts ? 'Done' : 'Edit';
                     loadAccounts();
+
+                    // Disable/Enable Add Account button
+                    document.getElementById('add-account-btn').disabled = isEditingAccounts;
                 };
 
                 const toggleEditServices = () => {
                     isEditingServices = !isEditingServices;
                     document.getElementById('edit-services-btn').textContent = isEditingServices ? 'Done' : 'Edit';
                     loadServices();
+
+                    // Disable/Enable Add Service and Back buttons
+                    document.getElementById('add-service-btn').disabled = isEditingServices;
+                    document.getElementById('back-to-accounts').disabled = isEditingServices;
                 };
 
                 const loadAccounts = () => {
@@ -355,24 +369,43 @@
                     const sitePassword = activeAccount.whip;
                     const hashedPassword = generateHashedPassword(domain, sitePassword);
                     navigator.clipboard.writeText(hashedPassword).then(() => {
-                        showNotificationPill(hashedPassword);
+                        showNotificationPill(hashedPassword, domain);
+
+                        // Trigger device vibration
+                        if (navigator.vibrate) {
+                            navigator.vibrate(200); // Vibrate for 200 milliseconds
+                        }
                     });
                 };
 
-                function showNotificationPill(hashedPassword) {
+                function showNotificationPill(hashedPassword, serviceName) {
                     const notificationPill = document.getElementById('notification-pill');
                     const hashedPasswordDisplay = document.getElementById('hashed-password-display');
-                    hashedPasswordDisplay.textContent = hashedPassword;
+                    hashedPasswordDisplay.innerHTML = `${hashedPassword}<br>Copied to clipboard`;
+
+                    // Disable service list items
+                    const serviceListItems = document.querySelectorAll('#service-list li');
+                    serviceListItems.forEach(item => item.style.pointerEvents = 'none');
 
                     notificationPill.style.display = 'block';
                     notificationPill.style.opacity = '1';
 
-                    setTimeout(() => {
+                    // Clear any existing timeout to ensure consistent display duration
+                    clearTimeout(notificationTimeout);
+
+                    const hideNotification = () => {
                         notificationPill.style.opacity = '0';
                         setTimeout(() => {
                             notificationPill.style.display = 'none';
-                        }, 300); // Match this timeout with the CSS transition duration
-                    }, 2000); 
+                            // Re-enable service list items
+                            serviceListItems.forEach(item => item.style.pointerEvents = 'auto');
+                        }, 300);
+                    };
+
+                    notificationPill.addEventListener('click', hideNotification);
+
+                    // Set a new timeout for hiding the notification
+                    notificationTimeout = setTimeout(hideNotification, 2000);
                 }
 
                 function generateHashedPassword(uri, data){
@@ -465,8 +498,7 @@
                         </div>
                     </div>
                     <div id="notification-pill" class="notification-pill" style="display: none;">
-                        <span id="hashed-password-display"></span><br>
-                        <span>Copied to clipboard</span>
+                        <span id="hashed-password-display"></span>
                     </div>
 
 
