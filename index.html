@@ -178,7 +178,7 @@
         </style>
         <script>
             var SPH_kPasswordPrefix="@@";
-            let notificationTimeout; // Declare a variable to store the timeout ID
+            let notificationTimeout;
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js').then(registration => {
@@ -197,6 +197,13 @@
                 }).catch(error => {
                     console.error('Service Worker registration failed:', error);
                 });
+            }
+
+            function sortList(ul) {
+                const items = Array.from(ul.children);
+                items.sort((a, b) => a.textContent.localeCompare(b.textContent));
+                ul.innerHTML = ''; // Clear the existing list
+                items.forEach(item => ul.appendChild(item)); // Append sorted items
             }
 
             function showUpdateButton() {
@@ -222,11 +229,13 @@
 
                 const toggleEditAccounts = () => {
                     isEditingAccounts = !isEditingAccounts;
+                    
                     document.getElementById('edit-accounts-btn').textContent = isEditingAccounts ? 'Done' : 'Edit';
                     loadAccounts();
 
                     // Disable/Enable Add Account button
                     document.getElementById('add-account-btn').disabled = isEditingAccounts;
+                    console.log(isEditingAccounts);
                 };
 
                 const toggleEditServices = () => {
@@ -278,6 +287,8 @@
                         li.addEventListener('click', () => activateAccount(account));
                         accountList.appendChild(li);
                     });
+                    sortList(accountList);
+                    adjustAccountListHeight();
                 };
 
                 const removeAccount = (accountName) => {
@@ -288,11 +299,13 @@
                 };
 
                 const activateAccount = (account) => {
-                    activeAccount = account;
-                    activeAccountName.textContent = "Services for Account: " +account.name;
-                    accountScreen.style.display = 'none';
-                    serviceScreen.style.display = 'block';
-                    loadServices();
+                    if(!isEditingAccounts) {
+                        activeAccount = account;
+                        activeAccountName.textContent = "Services for Account: " +account.name;
+                        accountScreen.style.display = 'none';
+                        serviceScreen.style.display = 'block';
+                        loadServices();
+                    }
                 };
 
                 const editAccount = (account) => {
@@ -352,6 +365,7 @@
                         li.addEventListener('click', () => useService(service));
                         serviceList.appendChild(li);
                     });
+                    sortList(serviceList);
                     adjustServiceListHeight();
                 };
 
@@ -377,12 +391,14 @@
                 };
 
                 const useService = (service) => {
-                    const domain = service.url;
-                    const sitePassword = activeAccount.whip;
-                    const hashedPassword = generateHashedPassword(domain, sitePassword);
-                    navigator.clipboard.writeText(hashedPassword).then(() => {
-                        showNotificationPill(hashedPassword, domain);
-                    });
+                    if (!isEditingServices) {
+                        const domain = service.url;
+                        const sitePassword = activeAccount.whip;
+                        const hashedPassword = generateHashedPassword(domain, sitePassword);
+                        navigator.clipboard.writeText(hashedPassword).then(() => {
+                            showNotificationPill(hashedPassword, domain);
+                        });
+                    }
                 };
 
                 function showNotificationPill(hashedPassword, serviceName) {
@@ -440,6 +456,7 @@
                         localStorage.setItem('accounts', JSON.stringify(accounts));
                         loadAccounts();
                         adjustAccountListHeight();
+                        updateAccountMessage();
                     }
                 });
 
@@ -455,6 +472,7 @@
                             localStorage.setItem('services', JSON.stringify(services));
                             loadServices();
                             adjustServiceListHeight();
+                            updateServiceMessage();
                         } else {
                             alert('Invalid URL. Please enter a valid URL.');
                         }
@@ -464,6 +482,25 @@
                 document.getElementById('back-to-accounts').addEventListener('click', () => {
                     serviceScreen.style.display = 'none';
                     accountScreen.style.display = 'block';
+                });
+
+                // Add event listeners to account list items
+                document.getElementById('account-list').addEventListener('click', (event) => {
+                    console.log("account-list clicked");
+                    if (isEditingAccounts) {
+                        event.stopPropagation(); // Prevent any action if in edit mode
+                        return; // Exit the function
+                    }
+                    // Handle account activation here
+                });
+
+                // Add event listeners to service list items
+                document.getElementById('service-list').addEventListener('click', (event) => {
+                    if (isEditingServices) {
+                        event.stopPropagation(); // Prevent any action if in edit mode
+                        return; // Exit the function
+                    }
+                    // Handle service activation here
                 });
 
                 function adjustAccountListHeight() {
@@ -494,9 +531,27 @@
                     console.log("Service list height: " + serviceList.style.height);
                 }
 
-                // Call these functions whenever the lists are updated
-                adjustAccountListHeight();
-                adjustServiceListHeight();
+                function updateAccountMessage() {
+                    const accountList = document.getElementById('account-list');
+                    const accountMessage = document.getElementById('account-message');
+                    
+                    if (accountList.children.length === 0) {
+                        accountMessage.textContent = "Add your first Whip.";
+                    } else {
+                        accountMessage.textContent = "Tap a Whip below to activate.";
+                    }
+                }
+
+                function updateServiceMessage() {
+                    const serviceList = document.getElementById('service-list');
+                    const serviceMessage = document.getElementById('service-message');
+                    
+                    if (serviceList.children.length === 0) {
+                        serviceMessage.textContent = "Add your first Service.";
+                    } else {
+                        serviceMessage.textContent = "Tap a Service to Whip the password.";
+                    }
+                }
 
                 document.getElementById('edit-accounts-btn').addEventListener('click', toggleEditAccounts);
                 document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
@@ -506,6 +561,8 @@
                 window.onload = () => {
                     adjustAccountListHeight();
                     adjustServiceListHeight();
+                    updateAccountMessage();
+                    updateServiceMessage();
                 };
             });
         </script>
@@ -527,11 +584,11 @@
                                 <img src="assets/images/WhipPass-Icon-Burger-Menu.png" alt="Menu Icon" class="icon" />
                                 <h2>Whips (Passwords)</h2>
                             </div>
-                            Tap a Whip below to activate.
+                            <p id="account-message">Tap a Whip below to activate.</p>
                             <ul id="account-list"></ul>
                             <div id="account-screen-buttons" class="account-screen-buttons">
-                                <button id="add-account-btn">Add Account</button>
-                                <button id="edit-accounts-btn">Edit Accounts</button>
+                                <button id="add-account-btn">Add Whip</button>
+                                <button id="edit-accounts-btn">Edit Whips</button>
                             </div>
                         </div>
                         <div id="service-screen" class="screen" style="display: none;">
@@ -539,7 +596,7 @@
                                 <img src="assets/images/WhipPass-Icon-Left-Arrow.png" alt="Back Icon" class="icon" id="back-to-accounts" />
                                 <h2><span id="active-account-name"></span></h2>
                            </div>
-                            Tap a Service to Whip the password.
+                           <p id="service-message">Tap a Service to Whip the password.</p>
                             <ul id="service-list"></ul>
                             <div id="service-screen-buttons" class="service-screen-buttons">
                                 <button id="add-service-btn">Add Service</button>
