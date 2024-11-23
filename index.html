@@ -115,14 +115,13 @@
                 text-align: center;
             }
             ul {
-                border: 2px solid rgba(20,55,81,.9);
+                border: 2px solid rgba(20, 55, 81, .9);
                 border-radius: 10px;
                 padding: 6px;
                 margin: 8px 0px;
-                list-style-type: none; /* Optional: remove default list styling */
-                background-color: rgb(32, 85, 129,0.1);
-                height:60vh;
-                overflow-y: auto;
+                list-style-type: none;
+                background-color: rgba(32, 85, 129, 0.1);
+                overflow-y: auto; /* Enable scrolling if needed */
             }
             .header {
                 display: flex;
@@ -353,6 +352,7 @@
                         li.addEventListener('click', () => useService(service));
                         serviceList.appendChild(li);
                     });
+                    adjustServiceListHeight();
                 };
 
                 const editService = (service) => {
@@ -439,6 +439,7 @@
                         accounts.push({ name, whip });
                         localStorage.setItem('accounts', JSON.stringify(accounts));
                         loadAccounts();
+                        adjustAccountListHeight();
                     }
                 });
 
@@ -453,6 +454,7 @@
                             services.push({ url: apexDomain });
                             localStorage.setItem('services', JSON.stringify(services));
                             loadServices();
+                            adjustServiceListHeight();
                         } else {
                             alert('Invalid URL. Please enter a valid URL.');
                         }
@@ -464,10 +466,47 @@
                     accountScreen.style.display = 'block';
                 });
 
+                function adjustAccountListHeight() {
+                    const accountList = document.getElementById('account-list');
+                    const listItems = accountList.querySelectorAll('li');
+                    const maxHeight = window.innerHeight - 200; // Adjust to account for other elements' height
+
+                    if (listItems.length === 0) {
+                        accountList.style.height = '40px'; // Height for a single entry
+                    } else {
+                        const totalHeight = Array.from(listItems).reduce((acc, item) => acc + item.offsetHeight, 0);
+                        accountList.style.height = Math.min(totalHeight, maxHeight)+20 + 'px';
+                    }
+                    console.log("Account list height: " + accountList.style.height);
+                }
+
+                function adjustServiceListHeight() {
+                    const serviceList = document.getElementById('service-list');
+                    const listItems = serviceList.querySelectorAll('li');
+                    const maxHeight = window.innerHeight - 200; // Adjust to account for other elements' height
+
+                    if (listItems.length === 0) {
+                        serviceList.style.height = '40px'; // Height for a single entry
+                    } else {
+                        const totalHeight = Array.from(listItems).reduce((acc, item) => acc + item.offsetHeight, 0);
+                        serviceList.style.height = Math.min(totalHeight, maxHeight)+20 + 'px';
+                    }
+                    console.log("Service list height: " + serviceList.style.height);
+                }
+
+                // Call these functions whenever the lists are updated
+                adjustAccountListHeight();
+                adjustServiceListHeight();
+
                 document.getElementById('edit-accounts-btn').addEventListener('click', toggleEditAccounts);
                 document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
 
                 loadAccounts();
+
+                window.onload = () => {
+                    adjustAccountListHeight();
+                    adjustServiceListHeight();
+                };
             });
         </script>
     </head>
