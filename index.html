@@ -824,12 +824,21 @@
 
                 document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
 
-                
+
                 // Initialise
                 window.onload = () => {
                     loadWhips();
                     updateWhipMessage();
                     updateServiceMessage();
+                    // Show the splash screen
+                    const splashScreen = document.getElementById('splash-screen');
+                    const defaultInterface = document.getElementById('content');
+
+                    // Set a timeout to hide the splash screen after 1 second
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none'; // Hide the splash screen
+                        defaultInterface.style.display = 'block'; // Show the Whips interface
+                    }, 1500); // 1000 milliseconds = 1 second
                 };
 
             });
@@ -840,6 +849,13 @@
             <div class="thing-one"></div>
             <div class="thing-two"></div>
             <div class="thing-three"></div>
+
+            <!-- Splash Screen Interface -->
+            <div id="splash-screen" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo" style="width: 200px; max-width: 50%;">
+            </div>
+            
+            <!-- Default Interface -->
             <div class="content">
                 <div class="container">
                     <div class="header">
