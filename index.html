@@ -36,20 +36,80 @@
                 margin: 0 auto;
                 padding: 20px;
             }
-            ul {
-                border: 2px solid rgba(20, 55, 81, .7);
+            ul, .form-box {
+                border: 2px solid rgba(20, 55, 81, 0.7);
                 border-radius: 10px;
                 padding: 6px;
                 margin: 8px 0px;
                 background-color: rgba(32, 85, 129, 0.1);
                 overflow-y: auto; /* Enable scrolling if needed */
             }
+            .form-box {
+                padding: 10px!important;
+            }
+            input {
+                border: 2px solid rgba(20, 55, 81, 0.7);
+                background-color: rgba(32, 85, 129, 0.1);
+                border-radius: 4px;
+                color: rgb(255,255,255,.9);
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="number"] {
+                width: 100%; /* Make inputs take full width of the grid cell */
+                padding: 8px; /* Add some padding for better appearance */
+                box-sizing: border-box; /* Include padding in width calculation */
+            }
+            .checkbox-container {
+                display: flex; /* Use flexbox for horizontal alignment */
+                align-items: center; /* Center items vertically */
+                cursor: pointer; /* Change cursor to pointer */
+            }
+
+            .custom-checkbox {
+                display: none; /* Hide the default checkbox */
+            }
+
+            .custom-checkbox-box {
+                width: 20px; /* Width of the custom checkbox */
+                height: 20px; /* Height of the custom checkbox */
+                border: 2px solid rgba(20, 55, 81, 0.7); /* Border style */
+                background-color: rgba(32, 85, 129, 0.1); /* Background color */
+                border-radius: 4px; /* Rounded corners */
+                margin-right: 10px; /* Space between checkbox and label */
+                position: relative; /* Position for the checkmark */
+                display: inline-block; /* Ensure it behaves like a block element */
+            }
+
+            .custom-checkbox:checked + .custom-checkbox-box {
+                background-color: rgba(32, 85, 129, 0.9); /* Background color when checked */
+            }
+
+            .custom-checkbox:checked + .custom-checkbox-box::after {
+                content: ''; /* Create a checkmark */
+                position: absolute;
+                left: 6px; /* Adjust position of the checkmark */
+                top: 3px; /* Fine-tune this value for vertical alignment */
+                width: 5px; /* Width of the checkmark */
+                height: 10px; /* Height of the checkmark */
+                border: solid white; /* Color of the checkmark */
+                border-width: 0 2px 2px 0; /* Create a checkmark shape */
+                transform: rotate(45deg); /* Rotate to form a checkmark */
+            }
+
+            .checkbox-container label {
+                color: rgba(255, 255, 255, 0.9); /* Label text color */
+                margin-bottom: 0; /* Remove default margin */
+                line-height: 20px; /* Match the line height to the checkbox height */
+                display: flex; /* Use flexbox for label alignment */
+                align-items: center; /* Center label text vertically */
+            }
             li {
                 cursor: pointer;
                 border-bottom: 1px solid rgba(20, 55, 81,.5);
                 padding: 6px 2px;
-                word-wrap: break-word; /* Allow long words to break and wrap */
-                overflow-wrap: break-word; /* Ensure long text wraps */
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             li:hover {
                 background-color: rgba(20, 55, 81,.08);
@@ -61,7 +121,7 @@
                 background-color: #000;
                 width:100vw;
                 height:100vh;
-                color: rgb(255,255,255,.9); /* Sets the text color to white */
+                color: rgb(255,255,255,.9);
             }
             .background-container {
                 position: relative;
@@ -142,13 +202,13 @@
             #back-to-whips {
                 cursor: pointer;
             }
-            .service-screen-buttons, .whip-screen-buttons, .update-app-button {
+            .service-screen-buttons, .whip-screen-buttons, .update-app-button, .form-actions {
                 display: flex;
                 justify-content: flex-end;
                 gap: 10px;
             }
             button {
-                background: linear-gradient(to right, #205581, #2E6FA5); /* Gradient from left to right */
+                background: linear-gradient(to right, #205581, #2E6FA5)!important; /* Gradient from left to right */
                 border: 1px solid #2E6FA5; /* 1px border with specified color */
                 border-radius: 3px; /* Rounded corners with 3px radius */
                 color: #fff; /* Text color */
@@ -159,7 +219,7 @@
                 gap:15px;
             }
             button:hover {
-                background: linear-gradient(to right, rgba(32, 85, 129, 0.9), rgba(46, 111, 165, 0.9));
+                background: linear-gradient(to right, rgba(32, 85, 129, 0.9), rgba(46, 111, 165, 0.9))!important;
             }
             button:disabled {
                 background: linear-gradient(to right, #7a7a7a, #b0b0b0); /* Grayscale gradient */
@@ -179,24 +239,8 @@
                 height: auto;
                 margin-right: 8px; /* Adds space between the icon and text */
             }
-            .modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
             .form-group {
                 margin-bottom: 15px;
-            }
-            .form-actions {
-                display: flex;
-                justify-content: space-between;
-                width: 100%;
             }
         </style>
         <script>
@@ -523,10 +567,11 @@
 
                 const loadServices = () => {
                     const services = JSON.parse(localStorage.getItem('services')) || [];
-                    serviceList.innerHTML = '';
-                    services.forEach(service => {
+                    serviceList.innerHTML = ''; // Clear the existing list
+
+                    services.forEach((service, index) => {
                         const li = document.createElement('li');
-                        li.textContent = service.url;
+                        li.textContent = service.uri; // Display the service URI
 
                         if (isEditingServices) {
                             const editLink = document.createElement('span');
@@ -541,15 +586,16 @@
                             deleteLink.style.cursor = 'pointer';
                             deleteLink.style.marginLeft = '10px';
 
+                            // Pass the service object to editService
                             editLink.addEventListener('click', (event) => {
                                 event.stopPropagation();
-                                editService(service);
+                                editService(service); // Pass the entire service object
                             });
 
                             deleteLink.addEventListener('click', (event) => {
                                 event.stopPropagation();
                                 if (confirm('Are you sure you want to delete this service?')) {
-                                    removeService(service.url);
+                                    removeService(index); // Pass the index to removeService
                                 }
                             });
 
@@ -560,22 +606,24 @@
                         li.addEventListener('click', () => useService(service));
                         serviceList.appendChild(li);
                     });
-                    sortList(serviceList);
-                    adjustListHeight('service-list');
-                    updateServiceMessage();
+
+                    sortList(serviceList); // Ensure this function is defined
+                    adjustListHeight('service-list'); // Ensure this function is defined
+                    updateServiceMessage(); // Ensure this function is defined
                 };
 
                 const editService = (service) => {
                     const services = JSON.parse(localStorage.getItem('services')) || [];
-                    const index = services.findIndex(srv => srv.url === service.url);
+                    const serviceIndex = services.findIndex(srv => srv.uri === service.uri); // Change 'srv.url' to 'srv.uri'
 
-                    if (index !== -1) {
-                        const newUrl = prompt('Edit Service URL:', service.url);
+                    if (serviceIndex !== -1) {
+                        showServiceForm(true, serviceIndex);
+                        /*const newUrl = prompt('Edit Service URL:', service.url);
                         if (newUrl !== null) {
-                            services[index].url = newUrl;
+                            services[serviceIndex].url = newUrl;
                             localStorage.setItem('services', JSON.stringify(services));
                             loadServices();
-                        }
+                        }*/
                     }
                 };
 
@@ -588,7 +636,7 @@
 
                 const useService = (service) => {
                     if (!isEditingServices) {
-                        const domain = service.url;
+                        const domain = service.uri;
                         const sitePassword = activeWhip.whip;
                         const hashedPassword = generateHashedPassword(domain, sitePassword);
                         navigator.clipboard.writeText(hashedPassword).then(() => {
@@ -596,6 +644,118 @@
                         });
                     }
                 };
+
+                serviceAddEditForm.addEventListener('submit', (event) => {
+                    event.preventDefault(); // Prevent the default form submission
+
+                    const serviceURI = document.getElementById('serviceURI').value.trim(); // Trim whitespace
+                    const excludeSpecialChars = document.getElementById('serviceSpecialChars').checked;
+                    const lengthLimit = document.getElementById('serviceLengthLimit').checked;
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
+                    
+                    // Check for empty values
+                    if (!serviceURI) {
+                        alert('Website Address (URI) is required.');
+                        return; // Exit the function if validation fails
+                    } else {
+                        const apexDomain=(new SPH_DomainExtractor()).extractDomain(serviceURI);
+                        if (apexDomain) {
+                            // Create the service object
+                            const service = {
+                                uri: apexDomain,
+                                excludeSpecialChars,
+                                lengthLimit
+                            };
+                            if (editingServiceIndex !== null) {
+                                // Update existing service
+                                services[editingServiceIndex] = service; // Update the service at the specified index
+                            } else {
+                                // Check for duplicate service URLs
+                                const serviceExists = services.some(service => service.url === apexDomain);
+                                if (serviceExists) {
+                                    alert('A service with this URL already exists. Please choose a different URL.');
+                                    return;
+                                }
+                                // Add new service
+                                services.push(service);
+                            }
+                            localStorage.setItem('services', JSON.stringify(services));
+
+                        } else {
+                            alert('Invalid URL. Please enter a valid URL.');
+                        }
+                    }
+
+                    // Reset the form and hide the screen
+                    serviceAddEditForm.reset();
+                    serviceAddEditScreen.style.display = 'none';
+                    serviceScreen.style.display = 'block';
+                    loadServices(); // Function to load services into the UI
+                    adjustListHeight('service-list'); // Adjust the height of the service list
+                    updateServiceMessage(); // Update any service-related messages
+                });
+
+                document.getElementById('add-service-btn').addEventListener('click', () => {
+                    showServiceForm(false);
+                });
+
+/*                document.getElementById('add-service-btn').addEventListener('click', () => {
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
+                    const url = prompt('Enter Service URL:');
+                    if (url) {
+                        const apexDomain=(new SPH_DomainExtractor()).extractDomain(url);
+                        if (apexDomain) {
+                            // Check for duplicate service URLs
+                            const serviceExists = services.some(service => service.url === apexDomain);
+                            if (serviceExists) {
+                                alert('A service with this URL already exists. Please choose a different URL.');
+                                return;
+                            }
+                            services.push({ url: apexDomain });
+                            localStorage.setItem('services', JSON.stringify(services));
+                            loadServices();
+                            adjustListHeight('service-list');
+                            updateServiceMessage();
+                        } else {
+                            alert('Invalid URL. Please enter a valid URL.');
+                        }
+                    }
+                });
+*/
+                // Function to show the service form for adding or editing
+                function showServiceForm(isEditing, serviceIndex) {
+                    const serviceFormTitle = document.getElementById('service-form-title');
+                    const serviceSubmitButton = document.getElementById('serviceSubmitButton');
+
+                    if (isEditing) {
+                        const services = JSON.parse(localStorage.getItem('services')) || [];
+                        const service = services[serviceIndex];
+
+                        // Pre-load the form with existing values
+                        document.getElementById('serviceURI').value = service.uri;
+                        document.getElementById('serviceSpecialChars').checked = service.excludeSpecialChars;
+                        document.getElementById('serviceLengthLimit').checked = service.lengthLimit;
+
+                        serviceFormTitle.textContent = 'Edit Service';
+                        serviceSubmitButton.textContent = 'Update Service';
+                        editingServiceIndex = serviceIndex; // Set the index of the service being edited
+                    } else {
+                        // Reset the form for adding a new service
+                        serviceAddEditForm.reset();
+                        serviceFormTitle.textContent = 'Add Service';
+                        serviceSubmitButton.textContent = 'Add Service';
+                        editingServiceIndex = null; // Reset editing index
+                    }
+
+                    serviceScreen.style.display = 'none';
+                    serviceAddEditScreen.style.display = 'block';
+                }
+
+                // Cancel button functionality for services
+                document.getElementById('serviceCancelButton').addEventListener('click', () => {
+                    serviceAddEditScreen.style.display = 'none';
+                    serviceScreen.style.display = 'block';
+                });
 
                 function showNotificationPill(hashedPassword, serviceName) {
                     const notificationPill = document.getElementById('notification-pill');
@@ -648,29 +808,6 @@
                         serviceMessage.textContent = "Tap a Service to Whip the password.";
                     }
                 }
-
-                document.getElementById('add-service-btn').addEventListener('click', () => {
-                    const services = JSON.parse(localStorage.getItem('services')) || [];
-                    const url = prompt('Enter Service URL:');
-                    if (url) {
-                        const apexDomain=(new SPH_DomainExtractor()).extractDomain(url);
-                        if (apexDomain) {
-                            // Check for duplicate service URLs
-                            const serviceExists = services.some(service => service.url === apexDomain);
-                            if (serviceExists) {
-                                alert('A service with this URL already exists. Please choose a different URL.');
-                                return;
-                            }
-                            services.push({ url: apexDomain });
-                            localStorage.setItem('services', JSON.stringify(services));
-                            loadServices();
-                            adjustListHeight('service-list');
-                            updateServiceMessage();
-                        } else {
-                            alert('Invalid URL. Please enter a valid URL.');
-                        }
-                    }
-                });
 
                 document.getElementById('back-to-whips').addEventListener('click', () => {
                     serviceScreen.style.display = 'none';
@@ -745,35 +882,47 @@
                             <h2 id="whip-form-title">Add Whip</h2>
                             <p>Enter a new Whip (Master Password).</p>
                             <form id="whip-form">
-                                <div class="form-group">
-                                    <label for="whipDisplayName">Whip Display Name</label>
-                                    <input type="text" id="whipDisplayName" placeholder="E.g. Work, Personal, etc." required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="whipPassword">Whip (Master Password)</label>
-                                    <input type="password" id="whipPassword" placeholder="Enter your Whip." required>
-                                    <button type="button" id="whipTogglePassword">Show/Hide</button>
-                                </div>
-                                <div class="form-group">
-                                    <label for="whipAccessCodeProtection">Access Code Protection</label>
-                                    <input type="checkbox" id="whipAccessCodeProtection">
-                                </div>
-                                <div class="form-group">
-                                    <label for="whipAdvancedMode">Advanced Mode Active</label>
-                                    <input type="checkbox" id="whipAdvancedMode">
-                                </div>
-                                <div id="whipAdvancedFields" style="display: none;">
+                                <div class="form-box">
                                     <div class="form-group">
-                                        <label for="whipSalt">Advanced: Salt</label>
-                                        <input type="text" id="whipSalt" placeholder="Enter a text string as your Salt.">
+                                        <label for="whipDisplayName">Whip Display Name</label>
+                                        <input type="text" id="whipDisplayName" placeholder="E.g. Work, Personal, etc." required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="whipIterations">Advanced: Iterations</label>
-                                        <input type="number" id="whipIterations" placeholder="Enter an integer, max 9999." min="1" max="9999">
+                                        <label for="whipPassword">Whip (Master Password)</label>
+                                        <input type="password" id="whipPassword" placeholder="Enter your Whip." required>
+                                        <button type="button" id="whipTogglePassword" style="display:none;">Show/Hide</button>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox-container">
+                                            <label>
+                                                <input type="checkbox" id="whipAccessCodeProtection" class="custom-checkbox">
+                                                <span class="custom-checkbox-box"></span>
+                                                Access Code Protection
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox-container">
+                                            <label>
+                                                <input type="checkbox" id="whipAdvancedMode" class="custom-checkbox">
+                                                <span class="custom-checkbox-box"></span>
+                                                Advanced Mode Active
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="whipAdvancedFields" style="display: none;">
+                                        <div class="form-group">
+                                            <label for="whipSalt">Advanced: Salt</label>
+                                            <input type="text" id="whipSalt" placeholder="Enter a text string as your Salt.">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="whipIterations">Advanced: Iterations</label>
+                                            <input type="number" id="whipIterations" placeholder="Enter an integer, max 9999." min="1" max="9999">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" id="whipSubmitButton">Create Whip</button>
+                                    <button type="submit" id="whipSubmitButton">Add Whip</button>
                                     <button type="button" id="whipCancelButton">Cancel</button>
                                 </div>
                             </form>
@@ -784,35 +933,32 @@
                             <h2 id="service-form-title">Add Service</h2>
                             <p>Enter a new Service you'd like to access.</p>
                             <form id="service-form">
-                                <div class="form-group">
-                                    <label for="serviceDisplayName">Service Display Name</label>
-                                    <input type="text" id="serviceDisplayName" placeholder="E.g. Work, Personal, etc." required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="servicePassword">Service (Master Password)</label>
-                                    <input type="password" id="servicePassword" placeholder="Enter your Service." required>
-                                    <button type="button" id="serviceTogglePassword">Show/Hide</button>
-                                </div>
-                                <div class="form-group">
-                                    <label for="serviceAccessCodeProtection">Access Code Protection</label>
-                                    <input type="checkbox" id="serviceAccessCodeProtection">
-                                </div>
-                                <div class="form-group">
-                                    <label for="serviceAdvancedMode">Advanced Mode Active</label>
-                                    <input type="checkbox" id="serviceAdvancedMode">
-                                </div>
-                                <div id="serviceAdvancedFields" style="display: none;">
+                                <div class="form-box">
                                     <div class="form-group">
-                                        <label for="serviceSalt">Advanced: Salt</label>
-                                        <input type="text" id="serviceSalt" placeholder="Enter a text string as your Salt.">
+                                        <label for="serviceURI">Website Address (URI)</label>
+                                        <input type="text" id="serviceURI" placeholder="https://www.example.com" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="serviceIterations">Advanced: Iterations</label>
-                                        <input type="number" id="serviceIterations" placeholder="Enter an integer, max 9999." min="1" max="9999">
+                                        <div class="checkbox-container">
+                                            <label>
+                                                <input type="checkbox" id="serviceSpecialChars" class="custom-checkbox">
+                                                <span class="custom-checkbox-box"></span>
+                                                Exclude Special Characters
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox-container">
+                                            <label>
+                                                <input type="checkbox" id="serviceLengthLimit" class="custom-checkbox">
+                                                <span class="custom-checkbox-box"></span>
+                                                Password Length Limit
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" id="serviceSubmitButton">Create Service</button>
+                                    <button type="submit" id="serviceSubmitButton">Add Service</button>
                                     <button type="button" id="serviceCancelButton">Cancel</button>
                                 </div>
                             </form>
