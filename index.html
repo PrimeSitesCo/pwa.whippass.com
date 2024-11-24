@@ -25,20 +25,31 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
         
         <script type="text/javascript" src="scripts/pwd-core.js" defer></script>
-        <scrip type="text/javascript"t src="scripts/cam-pwd-core.js" defer></script>
+        <script type="text/javascript"t src="scripts/cam-pwd-core.js" defer></script>
         <script type="text/javascript" src="scripts/whippass-core.js" defer></script>
         <script type="text/javascript" src="scripts/whippass-pw-show.js" defer></script>
 
         <style>
             .container {
+                list-style-type: none;
                 max-width: 1000px;
                 margin: 0 auto;
                 padding: 20px;
+            }
+            ul {
+                border: 2px solid rgba(20, 55, 81, .7);
+                border-radius: 10px;
+                padding: 6px;
+                margin: 8px 0px;
+                background-color: rgba(32, 85, 129, 0.1);
+                overflow-y: auto; /* Enable scrolling if needed */
             }
             li {
                 cursor: pointer;
                 border-bottom: 1px solid rgba(20, 55, 81,.5);
                 padding: 6px 2px;
+                word-wrap: break-word; /* Allow long words to break and wrap */
+                overflow-wrap: break-word; /* Ensure long text wraps */
             }
             li:hover {
                 background-color: rgba(20, 55, 81,.08);
@@ -114,15 +125,6 @@
                 transition: opacity 0.3s ease-in-out;
                 text-align: center;
             }
-            ul {
-                border: 2px solid rgba(20, 55, 81, .9);
-                border-radius: 10px;
-                padding: 6px;
-                margin: 8px 0px;
-                list-style-type: none;
-                background-color: rgba(32, 85, 129, 0.1);
-                overflow-y: auto; /* Enable scrolling if needed */
-            }
             .header {
                 display: flex;
                 align-items: center;
@@ -137,10 +139,10 @@
                 font-size: 2em;
                 color: rgb(255,255,255,.9);
             }
-            #back-to-accounts {
+            #back-to-whips {
                 cursor: pointer;
             }
-            .service-screen-buttons, .account-screen-buttons {
+            .service-screen-buttons, .whip-screen-buttons, .update-app-button {
                 display: flex;
                 justify-content: flex-end;
                 gap: 10px;
@@ -169,11 +171,32 @@
                 align-items: center;
                 margin-bottom: 10px;
             }
-
+            h2 {
+                font-size: larger;
+            }
             .icon {
                 width: 24px; /* Adjust the size as needed */
                 height: auto;
                 margin-right: 8px; /* Adds space between the icon and text */
+            }
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-actions {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
             }
         </style>
         <script>
@@ -218,44 +241,40 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                const accountScreen = document.getElementById('account-screen');
+                const whipScreen = document.getElementById('whip-screen');
+                const whipList = document.getElementById('whip-list');
+                const whipAddEditScreen = document.getElementById('whip-form-screen');
+                const whipAddEditForm = document.getElementById('whip-form');
                 const serviceScreen = document.getElementById('service-screen');
-                const accountList = document.getElementById('account-list');
                 const serviceList = document.getElementById('service-list');
-                const activeAccountName = document.getElementById('active-account-name');
-                let activeAccount = null;
-                let isEditingAccounts = false;
+                const serviceAddEditScreen = document.getElementById('service-form-screen');
+                const serviceAddEditForm = document.getElementById('service-form');
+                const activeWhipName = document.getElementById('active-whip-name');
+                let activeWhip = null;
+                let isEditingWhips = false;
                 let isEditingServices = false;
+                let editingWhipIndex = null;
 
-                const toggleEditAccounts = () => {
-                    isEditingAccounts = !isEditingAccounts;
+                // Whips
+                /////////////////////////
+                const toggleEditWhips = () => {
+                    isEditingWhips = !isEditingWhips;
                     
-                    document.getElementById('edit-accounts-btn').textContent = isEditingAccounts ? 'Done' : 'Edit';
-                    loadAccounts();
+                    document.getElementById('edit-whips-btn').textContent = isEditingWhips ? 'Done Editing' : 'Edit Whips';
+                    loadWhips();
 
-                    // Disable/Enable Add Account button
-                    document.getElementById('add-account-btn').disabled = isEditingAccounts;
-                    console.log(isEditingAccounts);
+                    // Disable/Enable Add Whip button
+                    document.getElementById('add-whip-btn').disabled = isEditingWhips;
                 };
 
-                const toggleEditServices = () => {
-                    isEditingServices = !isEditingServices;
-                    document.getElementById('edit-services-btn').textContent = isEditingServices ? 'Done' : 'Edit';
-                    loadServices();
-
-                    // Disable/Enable Add Service and Back buttons
-                    document.getElementById('add-service-btn').disabled = isEditingServices;
-                    document.getElementById('back-to-accounts').disabled = isEditingServices;
-                };
-
-                const loadAccounts = () => {
-                    const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-                    accountList.innerHTML = '';
-                    accounts.forEach(account => {
+                const loadWhips = () => {
+                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
+                    whipList.innerHTML = '';
+                    whips.forEach(whip => {
                         const li = document.createElement('li');
-                        li.textContent = account.name;
+                        li.textContent = whip.name;
 
-                        if (isEditingAccounts) {
+                        if (isEditingWhips) {
                             const editLink = document.createElement('span');
                             editLink.textContent = 'edit';
                             editLink.style.color = 'blue';
@@ -270,13 +289,13 @@
 
                             editLink.addEventListener('click', (event) => {
                                 event.stopPropagation();
-                                editAccount(account);
+                                editWhip(whip);
                             });
 
                             deleteLink.addEventListener('click', (event) => {
                                 event.stopPropagation();
-                                if (confirm('Are you sure you want to delete this account?')) {
-                                    removeAccount(account.name);
+                                if (confirm('Are you sure you want to delete this whip?')) {
+                                    removeWhip(whip.name);
                                 }
                             });
 
@@ -284,46 +303,222 @@
                             li.appendChild(deleteLink);
                         }
 
-                        li.addEventListener('click', () => activateAccount(account));
-                        accountList.appendChild(li);
+                        li.addEventListener('click', () => activateWhip(whip));
+                        whipList.appendChild(li);
                     });
-                    sortList(accountList);
-                    adjustAccountListHeight();
+                    sortList(whipList);
+                    adjustListHeight('whip-list');
                 };
 
-                const removeAccount = (accountName) => {
-                    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-                    accounts = accounts.filter(account => account.name !== accountName);
-                    localStorage.setItem('accounts', JSON.stringify(accounts));
-                    loadAccounts();
+                const removeWhip = (whipName) => {
+                    let whips = JSON.parse(localStorage.getItem('whips')) || [];
+                    whips = whips.filter(whip => whip.name !== whipName);
+                    localStorage.setItem('whips', JSON.stringify(whips));
+                    loadWhips();
                 };
 
-                const activateAccount = (account) => {
-                    if(!isEditingAccounts) {
-                        activeAccount = account;
-                        activeAccountName.textContent = "Services for Account: " +account.name;
-                        accountScreen.style.display = 'none';
+                const activateWhip = (whip) => {
+                    if(!isEditingWhips) {
+                        activeWhip = whip;
+                        activeWhipName.textContent = "Services for Whip: " +whip.name;
+                        whipScreen.style.display = 'none';
                         serviceScreen.style.display = 'block';
                         loadServices();
                     }
                 };
 
-                const editAccount = (account) => {
-                    const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-                    const index = accounts.findIndex(acc => acc.name === account.name);
+                const editWhip = (whip) => {
+                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
+                    const whipIndex = whips.findIndex(acc => acc.name === whip.name);
 
-                    if (index !== -1) {
-                        const newName = prompt('Edit account name:', account.name);
+                    if (whipIndex !== -1) {
+                        showWhipForm(true, whipIndex);
+                        /*const newName = prompt('Edit whip name:', whip.name);
                         if (newName !== null) {
-                            const newWhip = prompt('Edit Whip (password):', account.whip);
+                            const newWhip = prompt('Edit Whip (password):', whip.whip);
                             if (newWhip !== null) {
-                                accounts[index].name = newName;
-                                accounts[index].whip = newWhip;
-                                localStorage.setItem('accounts', JSON.stringify(accounts));
-                                loadAccounts();
+                                whips[index].name = newName;
+                                whips[index].whip = newWhip;
+                                localStorage.setItem('whips', JSON.stringify(whips));
+                                loadWhips();
                             }
+                        }*/
+                    }
+                };
+
+                /*document.getElementById('add-whip-btn').addEventListener('click', () => {
+                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
+                    const name = prompt('Enter whip name:');
+                    if (name) {
+                        // Check for duplicate whip names
+                        const whipExists = whips.some(whip => whip.name === name);
+                        if (whipExists) {
+                            alert('An whip with this name already exists. Please choose a different name.');
+                            return; 
                         }
                     }
+                    const whip = prompt('Enter Whip (password):');
+                    if (name && whip) {
+                        whips.push({ name, whip });
+                        localStorage.setItem('whips', JSON.stringify(whips));
+                        loadWhips();
+                        adjustListHeight('whip-list');
+                        updateWhipMessage();
+                    }
+                });*/
+
+                // Add event listeners to whip list items
+                whipList.addEventListener('click', (event) => {
+                    if (isEditingWhips) {
+                        event.stopPropagation();
+                        return;
+                    }
+                });
+
+                function adjustListHeight(list) {
+                    const listElement = document.getElementById(list);
+                    const listItems = listElement.querySelectorAll('li');
+                    const container = document.querySelector('.content'); 
+                    const containerHeight = container ? container.offsetHeight : 0;
+                    const workingHeight = containerHeight - listElement.offsetHeight;
+
+                    if (listItems.length === 0) {
+                        listElement.style.height = '40px'; // Height for a single entry
+                    } else {
+                        const totalHeight = Array.from(listItems).reduce((acc, item) => acc + item.offsetHeight, 0);
+                        const availableHeight = window.innerHeight - workingHeight;
+                        const elementHeight = (totalHeight > availableHeight) ? availableHeight : totalHeight+20;
+                        listElement.style.height = elementHeight + 'px';
+                    }
+                }
+
+                function updateWhipMessage() {
+                    const whipMessage = document.getElementById('whip-message');
+                    
+                    if (whipList.children.length === 0) {
+                        whipMessage.textContent = "Add your first Whip.";
+                    } else {
+                        whipMessage.textContent = "Tap a Whip below to activate.";
+                    }
+                }
+
+                // Toggle password visibility
+                document.getElementById('whipTogglePassword').addEventListener('click', () => {
+                    const passwordField = document.getElementById('whipPassword');
+                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordField.setAttribute('type', type);
+                });
+
+                // Show/hide advanced fields
+                document.getElementById('whipAdvancedMode').addEventListener('change', (event) => {
+                    const whipAdvancedFields = document.getElementById('whipAdvancedFields');
+                    whipAdvancedFields.style.display = event.target.checked ? 'block' : 'none';
+                });
+
+                whipAddEditForm.addEventListener('submit', (event) => {
+                    event.preventDefault(); // Prevent the default form submission
+
+                    const whipDisplayName = document.getElementById('whipDisplayName').value.trim(); // Trim whitespace
+                    const whipPassword = document.getElementById('whipPassword').value.trim(); // Trim whitespace
+                    const whipAccessCodeProtection = document.getElementById('whipAccessCodeProtection').checked;
+                    const whipAdvancedMode = document.getElementById('whipAdvancedMode').checked;
+                    const whipSalt = whipAdvancedMode ? document.getElementById('whipSalt').value.trim() : ''; // Trim whitespace
+                    const whipIterations = whipAdvancedMode ? parseInt(document.getElementById('whipIterations').value) : null;
+
+                    // Check for empty values
+                    if (!whipDisplayName || !whipPassword) {
+                        alert('Whip Display Name and Whip (Master Password) are required.');
+                        return; // Exit the function if validation fails
+                    }
+
+                    // Create the whip object
+                    const whip = {
+                        name: whipDisplayName,
+                        whip: whipPassword,
+                        whipAccessCodeProtection,
+                        whipAdvancedMode,
+                        whipSalt,
+                        whipIterations
+                    };
+
+                    // Store the whip object in local storage
+                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
+                    if (editingWhipIndex !== null) {
+                        // Update existing whip
+                        whips[editingWhipIndex] = whip; // Update the whip at the specified index
+                    } else {
+                        // Add new whip
+                        whips.push(whip);
+                    }
+                    localStorage.setItem('whips', JSON.stringify(whips));
+
+                    // Reset the form and hide the screen
+                    whipAddEditForm.reset();
+                    whipAddEditScreen.style.display = 'none';
+                    whipScreen.style.display = 'block';
+                    loadWhips();
+                    adjustListHeight('whip-list');
+                    updateWhipMessage();
+                });
+
+                document.getElementById('add-whip-btn').addEventListener('click', () => {
+                    showWhipForm(false);
+                });
+
+                // Function to show the whip form for adding or editing
+                function showWhipForm(isEditing, whipIndex) {
+                    const whipFormTitle = document.getElementById('whip-form-title');
+                    const whipSubmitButton = document.getElementById('whipSubmitButton');
+
+                    if (isEditing) {
+                        const whips = JSON.parse(localStorage.getItem('whips')) || [];
+                        const whip = whips[whipIndex];
+
+                        // Pre-load the form with existing values
+                        document.getElementById('whipDisplayName').value = whip.name;
+                        document.getElementById('whipPassword').value = whip.whip;
+                        document.getElementById('whipAccessCodeProtection').checked = whip.whipAccessCodeProtection;
+                        document.getElementById('whipAdvancedMode').checked = whip.whipAdvancedMode;
+                        document.getElementById('whipSalt').value = whip.whipSalt || '';
+                        document.getElementById('whipIterations').value = whip.whipIterations || '';
+
+                        whipFormTitle.textContent = 'Edit Whip';
+                        whipSubmitButton.textContent = 'Update Whip';
+                        editingWhipIndex = whipIndex; // Set the index of the whip being edited
+                    } else {
+                        // Reset the form for adding a new whip
+                        whipAddEditForm.reset();
+                        whipFormTitle.textContent = 'Add Whip';
+                        whipSubmitButton.textContent = 'Create Whip';
+                        editingWhipIndex = null; // Reset editing index
+                    }
+
+                    whipScreen.style.display = 'none';
+                    whipAddEditScreen.style.display = 'block';
+                }
+
+                // Cancel button functionality
+                document.getElementById('whipCancelButton').addEventListener('click', () => {
+                    whipAddEditScreen.style.display = 'none';
+                    whipScreen.style.display = 'block';
+                });
+
+
+
+                document.getElementById('edit-whips-btn').addEventListener('click', toggleEditWhips);
+
+
+                // Services
+                /////////////////////////
+
+                const toggleEditServices = () => {
+                    isEditingServices = !isEditingServices;
+                    document.getElementById('edit-services-btn').textContent = isEditingServices ? 'Done Editing' : 'Edit Services';
+                    loadServices();
+
+                    // Disable/Enable Add Service and Back buttons
+                    document.getElementById('add-service-btn').disabled = isEditingServices;
+                    document.getElementById('back-to-whips').disabled = isEditingServices;
                 };
 
                 const loadServices = () => {
@@ -366,7 +561,8 @@
                         serviceList.appendChild(li);
                     });
                     sortList(serviceList);
-                    adjustServiceListHeight();
+                    adjustListHeight('service-list');
+                    updateServiceMessage();
                 };
 
                 const editService = (service) => {
@@ -393,7 +589,7 @@
                 const useService = (service) => {
                     if (!isEditingServices) {
                         const domain = service.url;
-                        const sitePassword = activeAccount.whip;
+                        const sitePassword = activeWhip.whip;
                         const hashedPassword = generateHashedPassword(domain, sitePassword);
                         navigator.clipboard.writeText(hashedPassword).then(() => {
                             showNotificationPill(hashedPassword, domain);
@@ -442,106 +638,6 @@
                     return result;
                 }
 
-                /*const generateHashedPassword = (domain, sitePassword) => {
-                    // Implement your password hashing logic here
-                    return `${domain}-${sitePassword}`; // Placeholder
-                };*/
-
-                document.getElementById('add-account-btn').addEventListener('click', () => {
-                    const name = prompt('Enter account name:');
-                    const whip = prompt('Enter Whip (password):');
-                    if (name && whip) {
-                        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-                        accounts.push({ name, whip });
-                        localStorage.setItem('accounts', JSON.stringify(accounts));
-                        loadAccounts();
-                        adjustAccountListHeight();
-                        updateAccountMessage();
-                    }
-                });
-
-                document.getElementById('add-service-btn').addEventListener('click', () => {
-                    const url = prompt('Enter Service URL:');
-                    if (url) {
-                        const domainMatch = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/i);
-                        const apexDomain = domainMatch ? domainMatch[1] : null;
-
-                        if (apexDomain) {
-                            const services = JSON.parse(localStorage.getItem('services')) || [];
-                            services.push({ url: apexDomain });
-                            localStorage.setItem('services', JSON.stringify(services));
-                            loadServices();
-                            adjustServiceListHeight();
-                            updateServiceMessage();
-                        } else {
-                            alert('Invalid URL. Please enter a valid URL.');
-                        }
-                    }
-                });
-
-                document.getElementById('back-to-accounts').addEventListener('click', () => {
-                    serviceScreen.style.display = 'none';
-                    accountScreen.style.display = 'block';
-                });
-
-                // Add event listeners to account list items
-                document.getElementById('account-list').addEventListener('click', (event) => {
-                    console.log("account-list clicked");
-                    if (isEditingAccounts) {
-                        event.stopPropagation(); // Prevent any action if in edit mode
-                        return; // Exit the function
-                    }
-                    // Handle account activation here
-                });
-
-                // Add event listeners to service list items
-                document.getElementById('service-list').addEventListener('click', (event) => {
-                    if (isEditingServices) {
-                        event.stopPropagation(); // Prevent any action if in edit mode
-                        return; // Exit the function
-                    }
-                    // Handle service activation here
-                });
-
-                function adjustAccountListHeight() {
-                    const accountList = document.getElementById('account-list');
-                    const listItems = accountList.querySelectorAll('li');
-                    const maxHeight = window.innerHeight - 200; // Adjust to account for other elements' height
-
-                    if (listItems.length === 0) {
-                        accountList.style.height = '40px'; // Height for a single entry
-                    } else {
-                        const totalHeight = Array.from(listItems).reduce((acc, item) => acc + item.offsetHeight, 0);
-                        accountList.style.height = Math.min(totalHeight, maxHeight)+20 + 'px';
-                    }
-                    console.log("Account list height: " + accountList.style.height);
-                }
-
-                function adjustServiceListHeight() {
-                    const serviceList = document.getElementById('service-list');
-                    const listItems = serviceList.querySelectorAll('li');
-                    const maxHeight = window.innerHeight - 200; // Adjust to account for other elements' height
-
-                    if (listItems.length === 0) {
-                        serviceList.style.height = '40px'; // Height for a single entry
-                    } else {
-                        const totalHeight = Array.from(listItems).reduce((acc, item) => acc + item.offsetHeight, 0);
-                        serviceList.style.height = Math.min(totalHeight, maxHeight)+20 + 'px';
-                    }
-                    console.log("Service list height: " + serviceList.style.height);
-                }
-
-                function updateAccountMessage() {
-                    const accountList = document.getElementById('account-list');
-                    const accountMessage = document.getElementById('account-message');
-                    
-                    if (accountList.children.length === 0) {
-                        accountMessage.textContent = "Add your first Whip.";
-                    } else {
-                        accountMessage.textContent = "Tap a Whip below to activate.";
-                    }
-                }
-
                 function updateServiceMessage() {
                     const serviceList = document.getElementById('service-list');
                     const serviceMessage = document.getElementById('service-message');
@@ -553,17 +649,52 @@
                     }
                 }
 
-                document.getElementById('edit-accounts-btn').addEventListener('click', toggleEditAccounts);
+                document.getElementById('add-service-btn').addEventListener('click', () => {
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
+                    const url = prompt('Enter Service URL:');
+                    if (url) {
+                        const apexDomain=(new SPH_DomainExtractor()).extractDomain(url);
+                        if (apexDomain) {
+                            // Check for duplicate service URLs
+                            const serviceExists = services.some(service => service.url === apexDomain);
+                            if (serviceExists) {
+                                alert('A service with this URL already exists. Please choose a different URL.');
+                                return;
+                            }
+                            services.push({ url: apexDomain });
+                            localStorage.setItem('services', JSON.stringify(services));
+                            loadServices();
+                            adjustListHeight('service-list');
+                            updateServiceMessage();
+                        } else {
+                            alert('Invalid URL. Please enter a valid URL.');
+                        }
+                    }
+                });
+
+                document.getElementById('back-to-whips').addEventListener('click', () => {
+                    serviceScreen.style.display = 'none';
+                    whipScreen.style.display = 'block';
+                });
+
+                // Add event listeners to service list items
+                document.getElementById('service-list').addEventListener('click', (event) => {
+                    if (isEditingServices) {
+                        event.stopPropagation();
+                        return;
+                    }
+                });
+
                 document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
 
-                loadAccounts();
-
+                
+                // Initialise
                 window.onload = () => {
-                    adjustAccountListHeight();
-                    adjustServiceListHeight();
-                    updateAccountMessage();
+                    loadWhips();
+                    updateWhipMessage();
                     updateServiceMessage();
                 };
+
             });
         </script>
     </head>
@@ -579,35 +710,121 @@
                         <h1>WhipPass App</h1>
                     </div>
                     <div id="app">
-                        <div id="account-screen" class="screen">
+
+                        <!-- Whip Interface -->
+                        <div id="whip-screen" class="screen">
                             <div class="screen-header">
                                 <img src="assets/images/WhipPass-Icon-Burger-Menu.png" alt="Menu Icon" class="icon" />
                                 <h2>Whips (Passwords)</h2>
                             </div>
-                            <p id="account-message">Tap a Whip below to activate.</p>
-                            <ul id="account-list"></ul>
-                            <div id="account-screen-buttons" class="account-screen-buttons">
-                                <button id="add-account-btn">Add Whip</button>
-                                <button id="edit-accounts-btn">Edit Whips</button>
+                            <p id="whip-message">Tap a Whip below to activate.</p>
+                            <ul id="whip-list"></ul>
+                            <div id="whip-screen-buttons" class="whip-screen-buttons">
+                                <button id="add-whip-btn">Add Whip</button>
+                                <button id="edit-whips-btn">Edit Whips</button>
                             </div>
                         </div>
+
+                        <!-- Service Interface -->
                         <div id="service-screen" class="screen" style="display: none;">
                             <div class="screen-header">
-                                <img src="assets/images/WhipPass-Icon-Left-Arrow.png" alt="Back Icon" class="icon" id="back-to-accounts" />
-                                <h2><span id="active-account-name"></span></h2>
+                                <img src="assets/images/WhipPass-Icon-Left-Arrow.png" alt="Back Icon" class="icon" id="back-to-whips" />
+                                <h2><span id="active-whip-name"></span></h2>
                            </div>
                            <p id="service-message">Tap a Service to Whip the password.</p>
                             <ul id="service-list"></ul>
                             <div id="service-screen-buttons" class="service-screen-buttons">
                                 <button id="add-service-btn">Add Service</button>
                                 <button id="edit-services-btn">Edit Services</button>
-                                <!--<button id="back-to-accounts">Back</button>-->
+                                <!--<button id="back-to-whips">Back</button>-->
                             </div>
                         </div>
-                        <div id="update-app" style="display: none; margin-top:20px;">
+
+                        <!-- Whip Add/Edit Interface -->
+                        <div id="whip-form-screen" class="screen" style="display: none;">
+                            <h2 id="whip-form-title">Add Whip</h2>
+                            <p>Enter a new Whip (Master Password).</p>
+                            <form id="whip-form">
+                                <div class="form-group">
+                                    <label for="whipDisplayName">Whip Display Name</label>
+                                    <input type="text" id="whipDisplayName" placeholder="E.g. Work, Personal, etc." required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="whipPassword">Whip (Master Password)</label>
+                                    <input type="password" id="whipPassword" placeholder="Enter your Whip." required>
+                                    <button type="button" id="whipTogglePassword">Show/Hide</button>
+                                </div>
+                                <div class="form-group">
+                                    <label for="whipAccessCodeProtection">Access Code Protection</label>
+                                    <input type="checkbox" id="whipAccessCodeProtection">
+                                </div>
+                                <div class="form-group">
+                                    <label for="whipAdvancedMode">Advanced Mode Active</label>
+                                    <input type="checkbox" id="whipAdvancedMode">
+                                </div>
+                                <div id="whipAdvancedFields" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="whipSalt">Advanced: Salt</label>
+                                        <input type="text" id="whipSalt" placeholder="Enter a text string as your Salt.">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="whipIterations">Advanced: Iterations</label>
+                                        <input type="number" id="whipIterations" placeholder="Enter an integer, max 9999." min="1" max="9999">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" id="whipSubmitButton">Create Whip</button>
+                                    <button type="button" id="whipCancelButton">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Service Add/Edit Interface -->
+                        <div id="service-form-screen" class="screen" style="display: none;">
+                            <h2 id="service-form-title">Add Service</h2>
+                            <p>Enter a new Service you'd like to access.</p>
+                            <form id="service-form">
+                                <div class="form-group">
+                                    <label for="serviceDisplayName">Service Display Name</label>
+                                    <input type="text" id="serviceDisplayName" placeholder="E.g. Work, Personal, etc." required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="servicePassword">Service (Master Password)</label>
+                                    <input type="password" id="servicePassword" placeholder="Enter your Service." required>
+                                    <button type="button" id="serviceTogglePassword">Show/Hide</button>
+                                </div>
+                                <div class="form-group">
+                                    <label for="serviceAccessCodeProtection">Access Code Protection</label>
+                                    <input type="checkbox" id="serviceAccessCodeProtection">
+                                </div>
+                                <div class="form-group">
+                                    <label for="serviceAdvancedMode">Advanced Mode Active</label>
+                                    <input type="checkbox" id="serviceAdvancedMode">
+                                </div>
+                                <div id="serviceAdvancedFields" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="serviceSalt">Advanced: Salt</label>
+                                        <input type="text" id="serviceSalt" placeholder="Enter a text string as your Salt.">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="serviceIterations">Advanced: Iterations</label>
+                                        <input type="number" id="serviceIterations" placeholder="Enter an integer, max 9999." min="1" max="9999">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" id="serviceSubmitButton">Create Service</button>
+                                    <button type="button" id="serviceCancelButton">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- App Update Button -->
+                        <div id="update-app-button" style="display: none; margin-top:20px;">
                             <button>Update App</button>
                         </div>
                     </div>
+
+                    <!-- Hashed Password Pill -->
                     <div id="notification-pill" class="notification-pill" style="display: none;">
                         <span id="hashed-password-display"></span>
                     </div>
@@ -626,7 +843,7 @@
                             <input id="sitePassword" type="password" class="form-input text-base md:text-sm" name="sitePassword" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Enter your Whip" title="Type your master password, which stays consistent for all your services. NB: Do not reveal this to anyone." />
                         </div>
 
-                        <button name="submitButton" class="btn btn-primary !mt-6 my-4">Whip it!</button>
+                        <button name="whipSubmitButton" class="btn btn-primary !mt-6 my-4">Whip it!</button>
 
                         <div class="my-4">
                             <label for="hashedPassword">Whipped Password</label>  
