@@ -315,7 +315,7 @@
                 const toggleEditWhips = () => {
                     isEditingWhips = !isEditingWhips;
                     
-                    document.getElementById('edit-whips-btn').textContent = isEditingWhips ? 'Done Editing' : 'Edit Whips';
+                    document.getElementById('edit-whips-btn').textContent = isEditingWhips ? 'Done Editing' : ' Edit Whips ';
                     loadWhips();
 
                     // Disable/Enable Add Whip button
@@ -523,6 +523,7 @@
                 // Function to show the whip form for adding or editing
                 function showWhipForm(isEditing, whipIndex) {
                     const whipFormTitle = document.getElementById('whip-form-title');
+                    const whipFormMessage = document.getElementById('whip-form-message');
                     const whipSubmitButton = document.getElementById('whipSubmitButton');
 
                     if (isEditing) {
@@ -538,6 +539,7 @@
                         document.getElementById('whipIterations').value = whip.whipIterations || '';
 
                         whipFormTitle.textContent = 'Edit Whip';
+                        whipFormMessage.textContent = 'Update the Whip (Master Password)';
                         whipSubmitButton.textContent = 'Update Whip';
                         editingWhipIndex = whipIndex; // Set the index of the whip being edited
                     } else {
@@ -756,6 +758,7 @@
                 // Function to show the service form for adding or editing
                 function showServiceForm(isEditing, serviceIndex) {
                     const serviceFormTitle = document.getElementById('service-form-title');
+                    const serviceFormMessage = document.getElementById('service-form-message');
                     const serviceSubmitButton = document.getElementById('serviceSubmitButton');
 
                     if (isEditing) {
@@ -768,6 +771,7 @@
                         document.getElementById('serviceLengthLimit').checked = service.lengthLimit;
 
                         serviceFormTitle.textContent = 'Edit Service';
+                        serviceFormMessage.textContent = "Update the Service you'd like to access.";
                         serviceSubmitButton.textContent = 'Update Service';
                         editingServiceIndex = serviceIndex; // Set the index of the service being edited
                     } else {
@@ -930,7 +934,7 @@
                         <!-- Whip Add/Edit Interface -->
                         <div id="whip-form-screen" class="screen" style="display: none;">
                             <h2 id="whip-form-title">Add Whip</h2>
-                            <p>Enter a new Whip (Master Password).</p>
+                            <p id="whip-form-message">Enter a new Whip (Master Password).</p>
                             <form id="whip-form">
                                 <div class="form-box">
                                     <div class="form-group">
@@ -981,7 +985,7 @@
                         <!-- Service Add/Edit Interface -->
                         <div id="service-form-screen" class="screen" style="display: none;">
                             <h2 id="service-form-title">Add Service</h2>
-                            <p>Enter a new Service you'd like to access.</p>
+                            <p id="service-form-message">Enter a new Service you'd like to access.</p>
                             <form id="service-form">
                                 <div class="form-box">
                                     <div class="form-group">
