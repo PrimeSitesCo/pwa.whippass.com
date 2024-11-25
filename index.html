@@ -129,7 +129,6 @@
                 height: 100vh;
                 overflow: hidden; /* Ensures content doesn't overflow the container */
             }
-
             .thing-one, .thing-two, .thing-three {
                 position: absolute;
                 top: 0;
@@ -141,21 +140,31 @@
                 background: radial-gradient(40% 60% at 35% 65%, rgba(20,55,81,.6) 0%, rgba(20,55,81,0) 100%);
                 z-index: 1;
             }
-
             .thing-two {
                 background: radial-gradient(60% 40% at 65% 35%, rgba(46,111,165,.3) 0%, rgba(46,111,165,0) 100%);
                 z-index: 2;
             }
-
             .thing-three {
-                /*background: radial-gradient(60% 40% at 65% 35%, rgba(46,111,165,.3) 0%, rgba(46,111,165,0) 100%);*/
+                display:none; /*/ Inactive for now */
+                background: radial-gradient(60% 40% at 65% 35%, rgba(46,111,165,.3) 0%, rgba(46,111,165,0) 100%);
                 z-index: 3;
             }
-
             .content {
                 position: relative;
-                z-index: 4; /* Ensures content is above the backgrounds */
-                /* Add any additional styling for your content here */
+                z-index: 4;
+            }
+            #splash-screen {
+                position: relative;
+                z-index: 4; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh;
+            }
+            #splash-logo {
+                width: 300px; 
+                max-width: 50%;
+                margin-top: -20%;
             }
             a {
                 color: rgb(255,255,255,.9);
@@ -648,7 +657,9 @@
                 serviceAddEditForm.addEventListener('submit', (event) => {
                     event.preventDefault(); // Prevent the default form submission
 
-                    const serviceURI = document.getElementById('serviceURI').value.trim(); // Trim whitespace
+                    const serviceURIInput = document.getElementById('serviceURI');
+                    serviceURIInput.type = 'text'; // Change the input type to text
+                    const serviceURI = serviceURIInput.value.trim(); // Trim whitespace
                     const excludeSpecialChars = document.getElementById('serviceSpecialChars').checked;
                     const lengthLimit = document.getElementById('serviceLengthLimit').checked;
                     const services = JSON.parse(localStorage.getItem('services')) || [];
@@ -838,7 +849,7 @@
                     setTimeout(() => {
                         splashScreen.style.display = 'none'; // Hide the splash screen
                         defaultInterface.style.display = 'block'; // Show the Whips interface
-                    }, 1500); // 1000 milliseconds = 1 second
+                    }, 1200); // milliseconds 
                 };
 
             });
@@ -851,8 +862,8 @@
             <div class="thing-three"></div>
 
             <!-- Splash Screen Interface -->
-            <div id="splash-screen" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-                <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo" style="width: 200px; max-width: 50%;">
+            <div id="splash-screen">
+                <img id ="splash-logo" src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo">
             </div>
             
             <!-- Default Interface -->
@@ -952,7 +963,7 @@
                                 <div class="form-box">
                                     <div class="form-group">
                                         <label for="serviceURI">Website Address (URI)</label>
-                                        <input type="text" id="serviceURI" placeholder="https://www.example.com" required autocapitalize="none">
+                                        <input type="url" id="serviceURI" placeholder="https://www.example.com" required autocapitalize="none" autocomplete="off">
                                     </div>
                                     <div class="form-group">
                                         <div class="checkbox-container">
