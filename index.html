@@ -55,7 +55,8 @@
             }
             input[type="text"],
             input[type="password"],
-            input[type="number"] {
+            input[type="number"],
+            input[type="url"] {
                 width: 100%; /* Make inputs take full width of the grid cell */
                 padding: 8px; /* Add some padding for better appearance */
                 box-sizing: border-box; /* Include padding in width calculation */
@@ -164,7 +165,7 @@
             #splash-logo {
                 width: 300px; 
                 max-width: 50%;
-                margin-top: -20%;
+                margin-top: -20vh;
             }
             a {
                 color: rgb(255,255,255,.9);
@@ -303,6 +304,7 @@
                 const serviceAddEditScreen = document.getElementById('service-form-screen');
                 const serviceAddEditForm = document.getElementById('service-form');
                 const activeWhipName = document.getElementById('active-whip-name');
+                const serviceSubmitButton = document.getElementById('serviceSubmitButton');
                 let activeWhip = null;
                 let isEditingWhips = false;
                 let isEditingServices = false;
@@ -654,7 +656,21 @@
                     }
                 };
 
-                serviceAddEditForm.addEventListener('click', (event) => {
+                serviceSubmitButton.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent the default form submission
+                    handleServiceFormSubmission(); // Call the function to handle submission logic
+                });
+
+                // Add event listener for keydown on the form
+                serviceAddEditForm.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') { // Check if the Enter key is pressed
+                        event.preventDefault(); // Prevent the default form submission
+                        handleServiceFormSubmission(); // Call the function to handle submission logic
+                    }
+                });
+
+                // Function to handle form submission logic
+                function handleServiceFormSubmission() {
                     event.preventDefault(); // Prevent the default form submission
 
                     const serviceURIInput = document.getElementById('serviceURI');
@@ -704,7 +720,8 @@
                     loadServices(); // Function to load services into the UI
                     adjustListHeight('service-list'); // Adjust the height of the service list
                     updateServiceMessage(); // Update any service-related messages
-                });
+                    serviceURIInput.type = 'url'; // Change the input type back to url
+                };
 
                 document.getElementById('add-service-btn').addEventListener('click', () => {
                     showServiceForm(false);
@@ -985,7 +1002,7 @@
                                     </div>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" id="serviceSubmitButton">Add Service</button>
+                                    <button type="button" id="serviceSubmitButton">Add Service</button>
                                     <button type="button" id="serviceCancelButton">Cancel</button>
                                 </div>
                             </form>
