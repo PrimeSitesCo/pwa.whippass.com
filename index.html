@@ -252,6 +252,9 @@
             .form-group {
                 margin-bottom: 15px;
             }
+            .no-show {
+                display:none;
+            }
         </style>
         <script>
             var SPH_kPasswordPrefix="@@";
@@ -946,7 +949,7 @@
                                         <input type="password" id="whipPassword" placeholder="Enter your Whip." required>
                                         <button type="button" id="whipTogglePassword" style="display:none;">Show/Hide</button>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group no-show">
                                         <div class="checkbox-container">
                                             <label>
                                                 <input type="checkbox" id="whipAccessCodeProtection" class="custom-checkbox">
@@ -955,7 +958,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group no-show">
                                         <div class="checkbox-container">
                                             <label>
                                                 <input type="checkbox" id="whipAdvancedMode" class="custom-checkbox">
@@ -964,7 +967,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div id="whipAdvancedFields" style="display: none;">
+                                    <div class="no-show" id="whipAdvancedFields" style="display: none;">
                                         <div class="form-group">
                                             <label for="whipSalt">Advanced: Salt</label>
                                             <input type="text" id="whipSalt" placeholder="Enter a text string as your Salt.">
@@ -992,7 +995,7 @@
                                         <label for="serviceURI">Website Address (URI)</label>
                                         <input type="url" id="serviceURI" placeholder="https://www.example.com" required autocapitalize="none" autocomplete="off">
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group no-show">
                                         <div class="checkbox-container">
                                             <label>
                                                 <input type="checkbox" id="serviceSpecialChars" class="custom-checkbox">
@@ -1001,7 +1004,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group no-show">
                                         <div class="checkbox-container">
                                             <label>
                                                 <input type="checkbox" id="serviceLengthLimit" class="custom-checkbox">
