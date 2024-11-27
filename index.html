@@ -255,6 +255,15 @@
             .no-show {
                 display:none;
             }
+            .radio-container {
+                display: flex; 
+                gap: 10px;
+            }
+            .field-descriptor {
+                color:#999;
+                font-size: smaller;
+                margin: -6px 0px 5px;
+            }
         </style>
         <script>
             var SPH_kPasswordPrefix="@@";
@@ -327,45 +336,62 @@
 
                 const loadWhips = () => {
                     const whips = JSON.parse(localStorage.getItem('whips')) || [];
-                    whipList.innerHTML = '';
-                    whips.forEach(whip => {
-                        const li = document.createElement('li');
-                        li.textContent = whip.name;
+                    whipList.innerHTML = ''; // Clear the existing list
 
+                    if (whips.length === 0) {
+                        // If there are no whips, display a message
+                        const noWhipsMessage = document.createElement('li');
+                        noWhipsMessage.textContent = "Start by clicking 'Add Whip'.";
+                        noWhipsMessage.style.color = 'gray';
+                        noWhipsMessage.style.cursor = 'default';
+                        whipList.appendChild(noWhipsMessage);
                         if (isEditingWhips) {
-                            const editLink = document.createElement('span');
-                            editLink.textContent = 'edit';
-                            editLink.style.color = 'blue';
-                            editLink.style.cursor = 'pointer';
-                            editLink.style.marginLeft = '10px';
-
-                            const deleteLink = document.createElement('span');
-                            deleteLink.textContent = 'delete';
-                            deleteLink.style.color = 'red';
-                            deleteLink.style.cursor = 'pointer';
-                            deleteLink.style.marginLeft = '10px';
-
-                            editLink.addEventListener('click', (event) => {
-                                event.stopPropagation();
-                                editWhip(whip);
-                            });
-
-                            deleteLink.addEventListener('click', (event) => {
-                                event.stopPropagation();
-                                if (confirm('Are you sure you want to delete this whip?')) {
-                                    removeWhip(whip.name);
-                                }
-                            });
-
-                            li.appendChild(editLink);
-                            li.appendChild(deleteLink);
+                            toggleEditWhips();
                         }
+                        document.getElementById('edit-whips-btn').style.display = 'none'; // hide if there are no whips yet
+                    } else {
+                        document.getElementById('edit-whips-btn').style.display = 'block';
+                        whips.forEach(whip => {
+                            const li = document.createElement('li');
+                            li.textContent = whip.name;
 
-                        li.addEventListener('click', () => activateWhip(whip));
-                        whipList.appendChild(li);
-                    });
+                            if (isEditingWhips) {
+                                const editLink = document.createElement('span');
+                                editLink.textContent = 'edit';
+                                editLink.style.color = 'blue';
+                                editLink.style.cursor = 'pointer';
+                                editLink.style.marginLeft = '10px';
+
+                                const deleteLink = document.createElement('span');
+                                deleteLink.textContent = 'delete';
+                                deleteLink.style.color = 'red';
+                                deleteLink.style.cursor = 'pointer';
+                                deleteLink.style.marginLeft = '10px';
+
+                                editLink.addEventListener('click', (event) => {
+                                    event.stopPropagation();
+                                    editWhip(whip);
+                                });
+
+                                deleteLink.addEventListener('click', (event) => {
+                                    event.stopPropagation();
+                                    if (confirm('Are you sure you want to delete this whip?')) {
+                                        removeWhip(whip.name);
+                                    }
+                                });
+
+                                li.appendChild(editLink);
+                                li.appendChild(deleteLink);
+                            }
+
+                            li.addEventListener('click', () => activateWhip(whip));
+                            whipList.appendChild(li);
+                        });
+                    }
+
                     sortList(whipList);
                     adjustListHeight('whip-list');
+                    updateWhipMessage();
                 };
 
                 const removeWhip = (whipName) => {
@@ -451,9 +477,10 @@
                 }
 
                 function updateWhipMessage() {
+                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
                     const whipMessage = document.getElementById('whip-message');
                     
-                    if (whipList.children.length === 0) {
+                    if (whips.length === 0) {
                         whipMessage.textContent = "Add your first Whip.";
                     } else {
                         whipMessage.textContent = "Tap a Whip below to activate.";
@@ -588,47 +615,61 @@
                     const services = JSON.parse(localStorage.getItem('services')) || [];
                     serviceList.innerHTML = ''; // Clear the existing list
 
-                    services.forEach((service, index) => {
-                        const li = document.createElement('li');
-                        li.textContent = service.uri; // Display the service URI
-
+                    if (services.length === 0) {
+                        // If there are no whips, display a message
+                        const noServiceMessage = document.createElement('li');
+                        noServiceMessage.textContent = "Continue by clicking 'Add Service'.";
+                        noServiceMessage.style.color = 'gray'; 
+                        noServiceMessage.style.cursor = 'default';
+                        serviceList.appendChild(noServiceMessage);
                         if (isEditingServices) {
-                            const editLink = document.createElement('span');
-                            editLink.textContent = 'edit';
-                            editLink.style.color = 'blue';
-                            editLink.style.cursor = 'pointer';
-                            editLink.style.marginLeft = '10px';
-
-                            const deleteLink = document.createElement('span');
-                            deleteLink.textContent = 'delete';
-                            deleteLink.style.color = 'red';
-                            deleteLink.style.cursor = 'pointer';
-                            deleteLink.style.marginLeft = '10px';
-
-                            // Pass the service object to editService
-                            editLink.addEventListener('click', (event) => {
-                                event.stopPropagation();
-                                editService(service); // Pass the entire service object
-                            });
-
-                            deleteLink.addEventListener('click', (event) => {
-                                event.stopPropagation();
-                                if (confirm('Are you sure you want to delete this service?')) {
-                                    removeService(index); // Pass the index to removeService
-                                }
-                            });
-
-                            li.appendChild(editLink);
-                            li.appendChild(deleteLink);
+                            toggleEditServices();
                         }
+                        document.getElementById('edit-services-btn').style.display = 'none'; // hide if there are no whips yet
+                    } else {
+                        document.getElementById('edit-services-btn').style.display = 'block';
+                        services.forEach((service, index) => {
+                            const li = document.createElement('li');
+                            li.textContent = service.uri; // Display the service URI
 
-                        li.addEventListener('click', () => useService(service));
-                        serviceList.appendChild(li);
-                    });
+                            if (isEditingServices) {
+                                const editLink = document.createElement('span');
+                                editLink.textContent = 'edit';
+                                editLink.style.color = 'blue';
+                                editLink.style.cursor = 'pointer';
+                                editLink.style.marginLeft = '10px';
 
-                    sortList(serviceList); // Ensure this function is defined
-                    adjustListHeight('service-list'); // Ensure this function is defined
-                    updateServiceMessage(); // Ensure this function is defined
+                                const deleteLink = document.createElement('span');
+                                deleteLink.textContent = 'delete';
+                                deleteLink.style.color = 'red';
+                                deleteLink.style.cursor = 'pointer';
+                                deleteLink.style.marginLeft = '10px';
+
+                                // Pass the service object to editService
+                                editLink.addEventListener('click', (event) => {
+                                    event.stopPropagation();
+                                    editService(service); // Pass the entire service object
+                                });
+
+                                deleteLink.addEventListener('click', (event) => {
+                                    event.stopPropagation();
+                                    if (confirm('Are you sure you want to delete this service?')) {
+                                        removeService(service.uri); // Pass the index to removeService
+                                    }
+                                });
+
+                                li.appendChild(editLink);
+                                li.appendChild(deleteLink);
+                            }
+
+                            li.addEventListener('click', () => useService(service));
+                            serviceList.appendChild(li);
+                        });
+                    }
+
+                    sortList(serviceList);
+                    adjustListHeight('service-list');
+                    updateServiceMessage(); 
                 };
 
                 const editService = (service) => {
@@ -646,9 +687,9 @@
                     }
                 };
 
-                const removeService = (serviceUrl) => {
+                const removeService = (serviceUri) => {
                     let services = JSON.parse(localStorage.getItem('services')) || [];
-                    services = services.filter(service => service.url !== serviceUrl);
+                    services = services.filter(service => service.uri !== serviceUri);
                     localStorage.setItem('services', JSON.stringify(services));
                     loadServices();
                 };
@@ -657,7 +698,25 @@
                     if (!isEditingServices) {
                         const domain = service.uri;
                         const sitePassword = activeWhip.whip;
-                        const hashedPassword = generateHashedPassword(domain, sitePassword);
+                        let hashedPassword = generateHashedPassword(domain, sitePassword);
+
+                        // Check the special characters option
+                        if (service.excludeSpecialChars) {
+                            // Remove all special characters from the hashedPassword
+                            hashedPassword = hashedPassword.replace(/[^\w\s]/gi, ''); // Remove special characters
+                        } else if (service.specialCharInclude) {
+                            // Add the special character based on the position
+                            const specialChar = service.specialCharInclude;
+                            if (service.specialCharPosition === 'start') {
+                                hashedPassword = specialChar + hashedPassword; // Prepend the character
+                            } else if (service.specialCharPosition === 'end') {
+                                hashedPassword = hashedPassword + specialChar; // Append the character
+                            }
+                        }
+                        if (service.lengthLimit && !isNaN(service.lengthLimitValue)) {
+                            hashedPassword = hashedPassword.substring(0, service.lengthLimitValue); // Limit the password to the specified length
+                        }
+                        // Copy the modified hashedPassword to clipboard
                         navigator.clipboard.writeText(hashedPassword).then(() => {
                             showNotificationPill(hashedPassword, domain);
                         });
@@ -684,13 +743,47 @@
                     const serviceURIInput = document.getElementById('serviceURI');
                     serviceURIInput.type = 'text'; // Change the input type to text
                     const serviceURI = serviceURIInput.value.trim(); // Trim whitespace
-                    const excludeSpecialChars = document.getElementById('serviceSpecialChars').checked;
-                    const lengthLimit = document.getElementById('serviceLengthLimit').checked;
+                    
+                    // Get the checkbox and the length limit input
+                    const lengthLimitCheckbox = document.getElementById('serviceLengthLimit');
+                    const lengthLimitInput = document.getElementById('servicelengthLimitValueInput'); // Updated to match the input ID
+
+                    // Check if the length limit is checked
+                    const lengthLimit = lengthLimitCheckbox.checked;
+                    var lengthLimitValue = null;
+                    if (lengthLimit) {
+                        lengthLimitValue = parseInt(lengthLimitInput.value, 10); // Parse the input value as an integer
+                    }
+                    
                     const services = JSON.parse(localStorage.getItem('services')) || [];
                     
+                    // Get the selected option for special characters
+                    const specialCharsOption = document.querySelector('input[name="specialChars"]:checked').value;
+
+                    // Determine if special characters should be excluded based on the selected option
+                    const excludeSpecialChars = specialCharsOption === 'remove'; // Set to true if "Remove" is selected
+
+                    const serviceSpecialCharInclude = document.getElementById('serviceSpecialCharInclude');
+                    let specialCharInclude = '';
+                    let specialCharPosition = 'start'; // Default value
+
+                    if (specialCharsOption === 'add') {
+                        specialCharInclude = serviceSpecialCharInclude.value.trim();
+                        specialCharPosition = document.querySelector('input[name="specialCharPosition"]:checked').value;
+                    }
+
                     // Check for empty values
                     if (!serviceURI) {
                         alert('Website Address (URI) is required.');
+                        serviceURIInput.focus();
+                        return; // Exit the function if validation fails
+                    } else if ((specialCharsOption === 'add') && (specialCharInclude == "")) {
+                        alert('Special Character is required');
+                        serviceSpecialCharInclude.focus();
+                        return; // Exit the function if validation fails
+                    } else if ( lengthLimit && (lengthLimitValue < 5 || lengthLimitValue > 50 || isNaN(lengthLimitValue)) ) {
+                        alert('Please enter a valid integer for the password length.');
+                        lengthLimitInput.focus();
                         return; // Exit the function if validation fails
                     } else {
                         const apexDomain=(new SPH_DomainExtractor()).extractDomain(serviceURI);
@@ -698,8 +791,11 @@
                             // Create the service object
                             const service = {
                                 uri: apexDomain,
-                                excludeSpecialChars,
-                                lengthLimit
+                                excludeSpecialChars: specialCharsOption === 'remove', // Adjust based on the selected option
+                                specialCharInclude,
+                                specialCharPosition,
+                                lengthLimit,
+                                lengthLimitValue
                             };
                             if (editingServiceIndex !== null) {
                                 // Update existing service
@@ -763,6 +859,8 @@
                     const serviceFormTitle = document.getElementById('service-form-title');
                     const serviceFormMessage = document.getElementById('service-form-message');
                     const serviceSubmitButton = document.getElementById('serviceSubmitButton');
+                    document.getElementById('serviceSpecialCharsAdditionalFields').style.display = 'none'; // Initially hidden
+                    document.getElementById('servicelengthLimitValue').style.display = 'none'; // Initially hidden
 
                     if (isEditing) {
                         const services = JSON.parse(localStorage.getItem('services')) || [];
@@ -770,9 +868,27 @@
 
                         // Pre-load the form with existing values
                         document.getElementById('serviceURI').value = service.uri;
-                        document.getElementById('serviceSpecialChars').checked = service.excludeSpecialChars;
-                        document.getElementById('serviceLengthLimit').checked = service.lengthLimit;
+                        document.getElementById('serviceSpecialCharsAdditionalFields').style.display = 'none'; // hidden by default
 
+                        // Set the radio buttons based on the service data
+                        if (service.excludeSpecialChars) {
+                            document.getElementById('serviceSpecialCharsRemove').checked = true; // If "Remove" is selected
+                        } else if (service.specialCharInclude != "") {
+                            document.getElementById('serviceSpecialCharsAdd').checked = true; // If "Add" is selected
+                            document.getElementById('serviceSpecialCharsAdditionalFields').style.display = 'block'; // Show additional fields
+                        } else {
+                            document.getElementById('serviceSpecialCharsDefault').checked = true; // If "Default" is selected
+                        }
+                        
+                        document.getElementById('serviceSpecialCharInclude').value = service.specialCharInclude || ''; // Set the special character to include
+                        document.querySelector(`input[name="specialCharPosition"][value="${service.specialCharPosition}"]`).checked = true; // Set the position radio button
+                        if (service.lengthLimit) {
+                            document.getElementById('serviceLengthLimit').checked = service.lengthLimit;
+                            document.getElementById('servicelengthLimitValue').style.display = 'block';
+                        }
+                        
+                        document.getElementById('servicelengthLimitValueInput').value = service.lengthLimitValue;
+                        
                         serviceFormTitle.textContent = 'Edit Service';
                         serviceFormMessage.textContent = "Update the Service you'd like to access.";
                         serviceSubmitButton.textContent = 'Update Service';
@@ -840,10 +956,11 @@
                 }
 
                 function updateServiceMessage() {
+                    const services = JSON.parse(localStorage.getItem('services')) || [];
                     const serviceList = document.getElementById('service-list');
                     const serviceMessage = document.getElementById('service-message');
                     
-                    if (serviceList.children.length === 0) {
+                    if (services.length === 0) {
                         serviceMessage.textContent = "Add your first Service.";
                     } else {
                         serviceMessage.textContent = "Tap a Service to Whip the password.";
@@ -863,6 +980,31 @@
                     }
                 });
 
+                // Add event listeners to the radio buttons
+                document.querySelectorAll('input[name="specialChars"]').forEach((radio) => {
+                    radio.addEventListener('change', (event) => {
+                        const serviceSpecialCharsAdditionalFields = document.getElementById('serviceSpecialCharsAdditionalFields');
+                        if (event.target.value === 'add') {
+                            serviceSpecialCharsAdditionalFields.style.display = 'block'; // Show additional fields
+                        } else {
+                            serviceSpecialCharsAdditionalFields.style.display = 'none'; // Hide additional fields
+                        }
+                    });
+                });
+
+                const serviceLengthLimitCheckbox = document.getElementById('serviceLengthLimit');
+                const servicelengthLimitValueDiv = document.getElementById('servicelengthLimitValue');
+                // Add event listener to the checkbox
+                serviceLengthLimitCheckbox.addEventListener('change', () => {
+                    // Get the checkbox and the length limit div
+                    if (serviceLengthLimitCheckbox.checked) {
+                        servicelengthLimitValueDiv.style.display = 'block'; // Show the length limit input
+                    } else {
+                        servicelengthLimitValueDiv.style.display = 'none'; // Hide the length limit input
+                    }
+                });
+
+
                 document.getElementById('edit-services-btn').addEventListener('click', toggleEditServices);
 
 
@@ -875,10 +1017,10 @@
                     const splashScreen = document.getElementById('splash-screen');
                     const defaultInterface = document.getElementById('content');
 
-                    // Set a timeout to hide the splash screen after 1 second
+                    // Set a timeout to hide the splash screen 
                     setTimeout(() => {
                         splashScreen.style.display = 'none'; // Hide the splash screen
-                        defaultInterface.style.display = 'block'; // Show the Whips interface
+                        //defaultInterface.style.display = 'block'; // Show the Whips interface
                     }, 1200); // milliseconds 
                 };
 
@@ -897,7 +1039,7 @@
             </div>
             
             <!-- Default Interface -->
-            <div class="content">
+            <div class="content" id="content">
                 <div class="container">
                     <div class="header">
                         <img src="/assets/images/WhipPass-App-Image-001.webp" alt="WhipPass Logo">
@@ -993,24 +1135,59 @@
                                 <div class="form-box">
                                     <div class="form-group">
                                         <label for="serviceURI">Website Address (URI)</label>
+                                        <div class="field-descriptor">Start typing or paste the URI of the website you need to log into. E.g. google.com, facebook.com <strong>Note:</strong> Case sensitive</div>
                                         <input type="url" id="serviceURI" placeholder="https://www.example.com" required autocapitalize="none" autocomplete="off">
                                     </div>
-                                    <div class="form-group no-show">
-                                        <div class="checkbox-container">
+                                    <div class="form-group">
+                                        <label>Special Characters</label>
+                                        <div class="field-descriptor">Some services require a special character, while others do not allow it.</div>
+                                        <div class="radio-container">
                                             <label>
-                                                <input type="checkbox" id="serviceSpecialChars" class="custom-checkbox">
-                                                <span class="custom-checkbox-box"></span>
-                                                Exclude Special Characters
+                                                <input type="radio" name="specialChars" id="serviceSpecialCharsDefault" value="default" checked>
+                                                Default
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="specialChars" id="serviceSpecialCharsRemove" value="remove">
+                                                Remove
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="specialChars" id="serviceSpecialCharsAdd" value="add">
+                                                Add
                                             </label>
                                         </div>
+                                        <div id="serviceSpecialCharsAdditionalFields" style="display: none;">
+                                            <label for="serviceSpecialCharInclude">Special Character to Include</label>
+                                            <div class="field-descriptor">Enter a special charcater of your choice.</div>
+                                            <input type="text" id="serviceSpecialCharInclude" maxlength="1" placeholder="1 char limit">                                    
+                                            <label style="margin-top:10px;">Special Character Position</label>
+                                            <div class="field-descriptor">Select if the special character should be placed at the start or end of your hashed password.</div>
+                                            <div class="radio-container">
+                                                <label>
+                                                    <input type="radio" name="specialCharPosition" id="serviceSpecialCharPositionStart" value="start" checked>
+                                                    Start
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="specialCharPosition" id="serviceSpecialCharPositionEnd" value="end">
+                                                    End
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="form-group no-show">
+                                    
+                                    <div class="form-group">
+                                        <label>Password Length Limit</label>
+                                        <div class="field-descriptor">Some services place a limit on the number of characters in a password.</div>
                                         <div class="checkbox-container">
                                             <label>
                                                 <input type="checkbox" id="serviceLengthLimit" class="custom-checkbox">
                                                 <span class="custom-checkbox-box"></span>
-                                                Password Length Limit
+                                                Limit Password Length
                                             </label>
+                                        </div>
+                                        <div id="servicelengthLimitValue" style="margin-top: 10px; display: none;">
+                                            <label for="servicelengthLimitValueInput">Password Length Limit</label>
+                                            <div class="field-descriptor">Minimum 5 character, maximum 50 characters.</div>
+                                            <input type="number" id="servicelengthLimitValueInput" min="5" max="50" placeholder="Integer value">
                                         </div>
                                     </div>
                                 </div>
