@@ -358,16 +358,21 @@
                             if (isEditingWhips) {
                                 const editLink = document.createElement('span');
                                 editLink.textContent = 'edit';
-                                editLink.style.color = 'blue';
+                                editLink.style.color = '#ccc';
                                 editLink.style.cursor = 'pointer';
-                                editLink.style.marginLeft = '10px';
+                                //editLink.style.marginLeft = '10px';
 
                                 const deleteLink = document.createElement('span');
                                 deleteLink.textContent = 'delete';
-                                deleteLink.style.color = 'red';
+                                deleteLink.style.color = '#aaa';
                                 deleteLink.style.cursor = 'pointer';
-                                deleteLink.style.marginLeft = '10px';
+                                //deleteLink.style.marginLeft = '10px';
 
+                                // Create a container for the links
+                                const linkContainer = document.createElement('span');
+                                linkContainer.style.marginLeft = '10px'; // Optional: Add some margin to the left
+
+                                // Add event listeners for the links
                                 editLink.addEventListener('click', (event) => {
                                     event.stopPropagation();
                                     editWhip(whip);
@@ -380,8 +385,15 @@
                                     }
                                 });
 
-                                li.appendChild(editLink);
-                                li.appendChild(deleteLink);
+                                // Append the links to the link container
+                                linkContainer.appendChild(document.createTextNode(' ( '));
+                                linkContainer.appendChild(editLink);
+                                linkContainer.appendChild(document.createTextNode(' | '));
+                                linkContainer.appendChild(deleteLink);
+                                linkContainer.appendChild(document.createTextNode(' ) '));
+
+                                // Append the link container to the list item
+                                li.appendChild(linkContainer);
                             }
 
                             li.addEventListener('click', () => activateWhip(whip));
@@ -635,15 +647,15 @@
                             if (isEditingServices) {
                                 const editLink = document.createElement('span');
                                 editLink.textContent = 'edit';
-                                editLink.style.color = 'blue';
+                                editLink.style.color = '#ccc';
                                 editLink.style.cursor = 'pointer';
-                                editLink.style.marginLeft = '10px';
+                                //editLink.style.marginLeft = '10px';
 
                                 const deleteLink = document.createElement('span');
                                 deleteLink.textContent = 'delete';
-                                deleteLink.style.color = 'red';
+                                deleteLink.style.color = '#aaa';
                                 deleteLink.style.cursor = 'pointer';
-                                deleteLink.style.marginLeft = '10px';
+                                //deleteLink.style.marginLeft = '10px';
 
                                 // Pass the service object to editService
                                 editLink.addEventListener('click', (event) => {
@@ -658,8 +670,11 @@
                                     }
                                 });
 
+                                li.appendChild(document.createTextNode(' ( '));
                                 li.appendChild(editLink);
+                                li.appendChild(document.createTextNode(' | '));
                                 li.appendChild(deleteLink);
+                                li.appendChild(document.createTextNode(' ) '));
                             }
 
                             li.addEventListener('click', () => useService(service));
