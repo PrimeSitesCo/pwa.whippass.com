@@ -360,13 +360,11 @@
                                 editLink.textContent = 'edit';
                                 editLink.style.color = '#ccc';
                                 editLink.style.cursor = 'pointer';
-                                //editLink.style.marginLeft = '10px';
 
                                 const deleteLink = document.createElement('span');
                                 deleteLink.textContent = 'delete';
                                 deleteLink.style.color = '#aaa';
                                 deleteLink.style.cursor = 'pointer';
-                                //deleteLink.style.marginLeft = '10px';
 
                                 // Create a container for the links
                                 const linkContainer = document.createElement('span');
@@ -429,39 +427,8 @@
 
                     if (whipIndex !== -1) {
                         showWhipForm(true, whipIndex);
-                        /*const newName = prompt('Edit whip name:', whip.name);
-                        if (newName !== null) {
-                            const newWhip = prompt('Edit Whip (password):', whip.whip);
-                            if (newWhip !== null) {
-                                whips[index].name = newName;
-                                whips[index].whip = newWhip;
-                                localStorage.setItem('whips', JSON.stringify(whips));
-                                loadWhips();
-                            }
-                        }*/
                     }
                 };
-
-                /*document.getElementById('add-whip-btn').addEventListener('click', () => {
-                    const whips = JSON.parse(localStorage.getItem('whips')) || [];
-                    const name = prompt('Enter whip name:');
-                    if (name) {
-                        // Check for duplicate whip names
-                        const whipExists = whips.some(whip => whip.name === name);
-                        if (whipExists) {
-                            alert('An whip with this name already exists. Please choose a different name.');
-                            return; 
-                        }
-                    }
-                    const whip = prompt('Enter Whip (password):');
-                    if (name && whip) {
-                        whips.push({ name, whip });
-                        localStorage.setItem('whips', JSON.stringify(whips));
-                        loadWhips();
-                        adjustListHeight('whip-list');
-                        updateWhipMessage();
-                    }
-                });*/
 
                 // Add event listeners to whip list items
                 whipList.addEventListener('click', (event) => {
@@ -649,13 +616,11 @@
                                 editLink.textContent = 'edit';
                                 editLink.style.color = '#ccc';
                                 editLink.style.cursor = 'pointer';
-                                //editLink.style.marginLeft = '10px';
 
                                 const deleteLink = document.createElement('span');
                                 deleteLink.textContent = 'delete';
                                 deleteLink.style.color = '#aaa';
                                 deleteLink.style.cursor = 'pointer';
-                                //deleteLink.style.marginLeft = '10px';
 
                                 // Pass the service object to editService
                                 editLink.addEventListener('click', (event) => {
@@ -693,12 +658,6 @@
 
                     if (serviceIndex !== -1) {
                         showServiceForm(true, serviceIndex);
-                        /*const newUrl = prompt('Edit Service URL:', service.url);
-                        if (newUrl !== null) {
-                            services[serviceIndex].url = newUrl;
-                            localStorage.setItem('services', JSON.stringify(services));
-                            loadServices();
-                        }*/
                     }
                 };
 
@@ -846,29 +805,6 @@
                     showServiceForm(false);
                 });
 
-/*                document.getElementById('add-service-btn').addEventListener('click', () => {
-                    const services = JSON.parse(localStorage.getItem('services')) || [];
-                    const url = prompt('Enter Service URL:');
-                    if (url) {
-                        const apexDomain=(new SPH_DomainExtractor()).extractDomain(url);
-                        if (apexDomain) {
-                            // Check for duplicate service URLs
-                            const serviceExists = services.some(service => service.url === apexDomain);
-                            if (serviceExists) {
-                                alert('A service with this URL already exists. Please choose a different URL.');
-                                return;
-                            }
-                            services.push({ url: apexDomain });
-                            localStorage.setItem('services', JSON.stringify(services));
-                            loadServices();
-                            adjustListHeight('service-list');
-                            updateServiceMessage();
-                        } else {
-                            alert('Invalid URL. Please enter a valid URL.');
-                        }
-                    }
-                });
-*/
                 // Function to show the service form for adding or editing
                 function showServiceForm(isEditing, serviceIndex) {
                     const serviceFormTitle = document.getElementById('service-form-title');
